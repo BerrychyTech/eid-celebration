@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme {
+  --color-primary: #FD5C63;
+  --color-background: #FFEDE9;
+  --color-cardBg: #FAF5EF;
+  --color-accentBg: #FFFFFF;
+  --color-text: #2F2F2F;
+  --color-link: #3746A0;
+  --color-muted: #C4C4C4;
+  --color-formBg: #FFFFFF;
+  --color-inputText: #2F2F2F;
+
+  /* DARK THEME */
+  --color-dark-primary: #FD5C63;
+  --color-dark-background: #121212;
+  --color-dark-cardBg: #1C1C1C;
+  --color-dark-accentBg: #222222;
+  --color-dark-text: #EDEDED;
+  --color-dark-link: #818CF8;
+  --color-dark-muted: #5A5A5A;
+  --color-dark-formBg: #1C1C1C;
+  --color-dark-inputText: #E5E5E5;
+
+  --font-poppins: var(--font-poppins);
+
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.dark body {
+  background: var(--color-dark-background);
+  color: var(--color-dark-text);
+}
+
+section.hero {
+  background-color: var(--color-accentBg);
+  color: var(--color-text);
+}
+
+.dark section.hero {
+  background-color: var(--color-dark-accentBg);
+  color: var(--color-dark-text);
+}
