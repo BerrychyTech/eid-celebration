@@ -1,24 +1,15 @@
-// File: /components/DarkModeToggle.tsx
+// /components/DarkModeToggle.tsx
 "use client";
 
-import React from "react";
 import { Sun, Moon } from "lucide-react";
-import { useTheme } from "next-themes";
-
+import { useTheme } from "@/provider/ThemeProvider";
 interface DarkModeToggleProps {
   className?: string;
   size?: "sm" | "md" | "lg";
 }
 
-export default function DarkModeToggle({ 
-  className = "", 
-  size = "md" 
-}: DarkModeToggleProps) {
-  const { theme, setTheme } = useTheme();
-
-  const handleToggle = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+export default function DarkModeToggle({ className = "", size = "md" }: DarkModeToggleProps) {
+  const { theme, toggleTheme } = useTheme();
 
   const sizeClasses = {
     sm: "p-1.5 text-base",
@@ -36,7 +27,7 @@ export default function DarkModeToggle({
 
   return (
     <button
-      onClick={handleToggle}
+      onClick={toggleTheme}
       className={`
         rounded-md bg-accentBg dark:bg-dark-accentBg
         hover:bg-primary/10 hover:text-primary
@@ -47,7 +38,6 @@ export default function DarkModeToggle({
         ${className}
       `}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDark ? (
         <Sun className={iconSizes[size]} aria-hidden="true" />

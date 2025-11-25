@@ -1,23 +1,19 @@
+// app/layout.tsx
 import type { ReactNode } from "react";
-import { ThemeProvider } from "next-themes";
-
 import "./globals.css";
 import { poppins } from "@/styles/fonts";
+import { ThemeProvider } from "@/provider/ThemeProvider";
 
 export const metadata = {
   title: "BerryGo — Move Better, Live Better",
   description: "Transportation made smart and seamless.",
 };
 
-interface RootLayoutProps {
-  children: ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={poppins.variable}>
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
       <body className="bg-background text-text dark:bg-dark-background dark:text-dark-text transition-colors duration-300">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <ThemeProvider>
           {children}
         </ThemeProvider>
       </body>

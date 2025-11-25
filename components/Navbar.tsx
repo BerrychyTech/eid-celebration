@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -12,7 +11,7 @@ import DarkModeToggle from "./DarkModeToggle";
 const menu = [
   { label: "Home", href: "/" },
   { label: "Book a Ride", href: "/book" },
-  { label: "Track My Booking", href: "/my-bookings" },
+  { label: "Track My Booking", href: "/mybookings" },
   { label: "Become a Fleet Partner", href: "/fleet-partner" },
   { label: "FAQs / About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -90,8 +89,9 @@ export default function Header() {
   return (
     <header className="fixed w-full top-0 z-50 bg-cardBg dark:bg-dark-cardBg text-text dark:text-dark-text shadow font-poppins">
       <div className="flex justify-between items-center px-4 py-3 max-w-7xl mx-auto">
-        <Image src="/berrygo.jpg" alt="BerryGo Logo" width={96} height={48} className="rounded-3xl object-contain" />
-
+        <Link href="/" className="text-2xl font-poppins font-bold tracking-tight text-primary">
+        BerryGo
+        </Link>
         {/* Desktop menu */}
         <nav className="hidden md:flex gap-6 text-sm font-medium items-center">
           {menu.map((item) => (

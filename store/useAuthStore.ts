@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: "berrygo-auth",
+      name: "token",
 
       // 🚀 Safe storage handler for Next.js
       storage: createJSONStorage(() => localStorage),
