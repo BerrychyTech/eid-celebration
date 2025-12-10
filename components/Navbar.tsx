@@ -34,6 +34,14 @@ export default function Header() {
     }, 1000);
   };
 
+    const filteredMenu = user
+    ? 
+    [
+    { label: "Dashboard", href: "/dashboard" },  
+    ...menu.filter((item) => item.label !== "Home"),
+    ]
+    : menu;
+
   const renderAuth = () => {
     if (user) {
       return (
@@ -50,10 +58,10 @@ export default function Header() {
             <Link href="/profile" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
               My Account
             </Link>
-            <Link href="/bookings" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
+            <Link href="/mybookings" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
               My Bookings
             </Link>
-            <Link href="/support" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
+            <Link href="/contact" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
               Support
             </Link>
             <button
@@ -94,17 +102,18 @@ export default function Header() {
         </Link>
         {/* Desktop menu */}
         <nav className="hidden md:flex gap-6 text-sm font-medium items-center">
-          {menu.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`hover:text-primary dark:hover:text-dark-primary transition ${
-                pathname === item.href ? "text-primary dark:text-dark-primary font-semibold" : ""
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+         {filteredMenu.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className={`hover:text-primary dark:hover:text-dark-primary transition ${
+              pathname === item.href ? "text-primary dark:text-dark-primary font-semibold" : ""
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+
           {renderAuth()}
           <DarkModeToggle size="md" />
         </nav>
@@ -137,18 +146,18 @@ export default function Header() {
             &times;
           </button>
           <nav className="flex flex-col gap-4 text-lg font-medium">
-            {menu.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={`hover:text-primary dark:hover:text-dark-primary transition ${
-                  pathname === item.href ? "text-primary dark:text-dark-primary font-semibold" : ""
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {filteredMenu.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`hover:text-primary dark:hover:text-dark-primary transition ${
+                pathname === item.href ? "text-primary dark:text-dark-primary font-semibold" : ""
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+
             <div className="mt-6">{renderAuth()}</div>
           </nav>
         </div>

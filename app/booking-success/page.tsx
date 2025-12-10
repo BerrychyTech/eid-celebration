@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function BookingSuccessPage() {
   const searchParams = useSearchParams();
@@ -12,13 +13,22 @@ export default function BookingSuccessPage() {
 
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const token = useAuthStore.getState().token;
 
   useEffect(() => {
     if (!bookingId) return;
 
     async function fetchBooking() {
       try {
-        const res = await api.get(`/bookings/${bookingId}`);
+        if (!token) {
+          console.error("Missing token in store");
+          return;
+        }
+
+        const res = await api.get(`/${bookingId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         setBooking(res.data);
       } catch (err) {
         console.error(err);
@@ -28,14 +38,50 @@ export default function BookingSuccessPage() {
     }
 
     fetchBooking();
-  }, [bookingId]);
+  }, [bookingId, token]);
 
-  const downloadPDF = () => {
-    window.location.href = `http://localhost:5000/receipt/${bookingId}/pdf`;
+  // Secure PDF download
+  const downloadPDF = async () => {
+    if (!token) return;
+
+    try {
+      const res = await api.get(`/receipt/${bookingId}/pdf/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob", // important for file downloads
+      });
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `receipt-${bookingId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Error downloading PDF:", err);
+    }
   };
 
-  const downloadImage = () => {
-    window.location.href = `http://localhost:5000/receipt/${bookingId}/image`;
+  // Secure Image download
+  const downloadImage = async () => {
+    if (!token) return;
+
+    try {
+      const res = await api.get(`/receipt/${bookingId}/image/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `receipt-${bookingId}.png`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Error downloading image:", err);
+    }
   };
 
   return (
@@ -76,21 +122,21 @@ export default function BookingSuccessPage() {
           <div className="mt-8 space-y-3">
             <button
               onClick={downloadPDF}
-              className="w-full py-3 bg-primary dark:bg-dark-primary text-white rounded-lg font-medium shadow hover:opacity-90 transition"
+              className=" text-center py-3 rounded-lg font-medium bg-accentBg dark:bg-dark-accentBg border border-muted/20 dark:border-dark-muted/20 hover:bg-primary dark:hover:bg-dark-primary transition text-primary hover:text-white px-17 md:px-8 md:ml-0.5"
             >
               Download PDF Receipt
             </button>
 
             <button
               onClick={downloadImage}
-              className="w-full py-3 bg-accentBg dark:bg-dark-accentBg text-text dark:text-dark-text rounded-lg font-medium shadow border border-muted/20 dark:border-dark-muted/20 hover:opacity-80 transition"
+              className=" text-center py-3 rounded-lg font-medium bg-accentBg dark:bg-dark-accentBg border border-muted/20 dark:border-dark-muted/20 hover:bg-primary dark:hover:bg-dark-primary transition text-primary hover:text-white px-14 md:px-5 md:ml-5"
             >
-              Download Image Receipt (PNG)
+              Download Image Receipt
             </button>
 
             <a
               href="/dashboard"
-              className="block text-center py-3 rounded-lg font-medium bg-background dark:bg-dark-background border border-muted/20 dark:border-dark-muted/20 hover:bg-accentBg dark:hover:bg-dark-accentBg transition"
+              className="block text-center py-3 rounded-lg font-medium bg-accentBg dark:bg-dark-accentBg border border-muted/20 dark:border-dark-muted/20 hover:bg-primary dark:hover:bg-dark-primary transition text-primary hover:text-white"
             >
               Go to Dashboard
             </a>

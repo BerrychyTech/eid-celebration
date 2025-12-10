@@ -10,6 +10,8 @@ const actionItems = [
   { href: "/wallet", label: "Wallet", icon: FaWallet },
   { href: "/support", label: "Help", icon: FaQuestionCircle },
   { href: "/become-vendor", label: "Become vendor", icon: FaUserPlus },
+  { href: "/be-fleet-partner", label: "Be fleet Partner", icon: FaUserPlus },
+
 ];
 
 export default function QuickActions() {

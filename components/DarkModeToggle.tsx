@@ -2,14 +2,24 @@
 "use client";
 
 import { Sun, Moon } from "lucide-react";
-import { useTheme } from "@/provider/ThemeProvider";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+
 interface DarkModeToggleProps {
   className?: string;
   size?: "sm" | "md" | "lg";
 }
 
 export default function DarkModeToggle({ className = "", size = "md" }: DarkModeToggleProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  const currentTheme = theme === "system" ? systemTheme : theme;
+  const isDark = currentTheme === "dark";
 
   const sizeClasses = {
     sm: "p-1.5 text-base",
@@ -23,11 +33,9 @@ export default function DarkModeToggle({ className = "", size = "md" }: DarkMode
     lg: "w-6 h-6",
   };
 
-  const isDark = theme === "dark";
-
   return (
     <button
-      onClick={toggleTheme}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
       className={`
         rounded-md bg-accentBg dark:bg-dark-accentBg
         hover:bg-primary/10 hover:text-primary

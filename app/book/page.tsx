@@ -4,8 +4,8 @@
 import * as React from "react";
 import Header from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import BookTitleSection from "@/components/booking_page/BookTitleSection";
-import RegularTripForm from "@/components/booking_page/RegularTripForm";
+import BookTitleSection from "@/components/booking_page/regularTrip/BookTitleSection";
+import RegularTripForm from "@/components/booking_page/regularTrip/RegularTripForm";
 import EventFleetForm from "@/components/booking_page/EventFleetForm";
 import { FaCar, FaUsers } from "react-icons/fa"; // ✅ Import icons
 

@@ -9,8 +9,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const base = "text-xs px-2 py-1 rounded font-medium";
 
   const styles: Record<Booking["status"], string> = {
-    confirmed: "bg-primary text-success dark:bg-dark-primary dark:text-dark-success",
-    completed: "bg-primary text-info dark:bg-dark-primary dark:text-dark-info",
+    confirmed: "bg-primary text-white dark:bg-dark-primary dark:text-white",
+    completed: "bg-primary text-white dark:bg-dark-primary dark:text-white",
     cancelled: "bg-red-900 text-danger dark:bg-dark-dangerBg dark:text-dark-danger",
   };
 

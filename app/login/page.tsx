@@ -6,7 +6,8 @@ import { login as loginAPI } from "@/lib/auth";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
-import AuthForm, { AuthFormData } from "@/components/auth/AuthForm";
+import AuthForm from "@/components/auth/AuthForm";
+import { AuthFormData } from "@/components/auth/validation";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function LoginPage() {
       if (res?.token && res?.user) {
         login(res.user, res.token);
         toast.success("✅ Logged in successfully!");
-        router.push("/book");
+        router.push("/dashboard");
       } else {
         throw new Error("Invalid login response");
       }

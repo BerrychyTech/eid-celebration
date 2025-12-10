@@ -18,9 +18,12 @@ export type Booking = {
 export default function UpcomingBookingCard({
   booking,
   onCancel,
+  onTrack,
 }: {
   booking: Booking;
   onCancel?: (id: number) => void;
+  onTrack?: (booking: Booking) => void;
+
 }) {
   return (
     <article className="bg-cardBg dark:bg-dark-cardBg p-4 rounded-lg shadow font-poppins">
@@ -35,10 +38,18 @@ export default function UpcomingBookingCard({
           </p>
 
           <div className="mt-3 flex items-center gap-2">
-            <Link href={`/bookings/${booking.id}`} className="text-sm inline-flex items-center gap-2 bg-primary text-white px-3 py-1 rounded hover:opacity-90 transition">
-              <FaMapMarkerAlt />
-              Track
-            </Link>
+          <Link
+            href="#"
+            onClick={(e) => {
+              e.preventDefault(); // prevent navigation
+              onTrack?.(booking);
+            }}
+            className="text-sm inline-flex items-center gap-2 bg-primary text-white px-3 py-1 rounded hover:opacity-90 transition"
+          >
+            <FaMapMarkerAlt />
+            Track
+          </Link>
+
 
             <button
               onClick={() => onCancel?.(booking.id)}

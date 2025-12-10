@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import AuthForm from "@/components/auth/AuthForm";
-import type { AuthFormData } from "@/components/auth/AuthForm";
+import type { AuthFormData } from "@/components/auth/validation";
 import { register as registerAPI } from "@/lib/auth";
 import Header from "@/components/Navbar";
 import Footer from "@/components/Footer";

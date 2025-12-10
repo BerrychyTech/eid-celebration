@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 import { BookingTabs } from "@/components/mybookings_page/BookingsTab";
 import { BookingList } from "@/components/mybookings_page/BookingList";
 import { Booking } from "@/types/mybookings";
+
+
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = React.useState<"upcoming" | "past">("upcoming");
   const [bookings, setBookings] = React.useState<Booking[]>([]);
