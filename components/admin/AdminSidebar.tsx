@@ -12,7 +12,9 @@ const menu = [
   { name: "Deliveries", link: "/admin/deliveries" },
   { name: "Wallet", link: "/admin/wallet" },
   { name: "Reports", link: "/admin/reports" },
+  { name: "Payouts", link: "/admin/payouts" },
   { name: "Settings", link: "/admin/settings" },
+
 ];
 
 export default function AdminSidebar() {
