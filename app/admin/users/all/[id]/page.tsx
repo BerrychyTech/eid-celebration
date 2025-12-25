@@ -140,7 +140,7 @@ const MOCK_RIDES: Ride[] = [
     pickup: "Garki, Abuja",
     dropoff: "Wuse, Abuja",
     date: "2025-12-01",
-    driver: "John Driver",
+    driver: "Haidar",
     fare: 1500,
     status: "completed",
     duration: "22m",
@@ -604,7 +604,7 @@ export default function UserDetailsPageClient() {
           <div className="w-full max-w-3xl bg-[var(--color-accentBg)] rounded-2xl p-6">
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-xl font-semibold">Ride {selectedRide.id} — Details</h3>
-              <button onClick={() => setSelectedRide(null)} className="text-[var(--color-link)]">Close</button>
+              <button onClick={() => setSelectedRide(null)} className="text-[var(--color-primary)]">Close</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -617,9 +617,6 @@ export default function UserDetailsPageClient() {
 
                 <p className="text-[var(--color-muted)] mt-3">Fare</p>
                 <p className="font-medium">₦{selectedRide.fare.toLocaleString()}</p>
-
-                <p className="text-[var(--color-muted)] mt-3">Duration</p>
-                <p className="font-medium">{selectedRide.duration}</p>
 
                 {selectedRide.complaint && (
                   <>
@@ -656,7 +653,7 @@ export default function UserDetailsPageClient() {
           <div className="w-full max-w-2xl bg-[var(--color-accentBg)] rounded-2xl p-6">
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-xl font-semibold">Delivery {selectedDelivery.id} — Details</h3>
-              <button onClick={() => setSelectedDelivery(null)} className="text-[var(--color-link)]">Close</button>
+              <button onClick={() => setSelectedDelivery(null)} className="text-[var(--color-primary)]">Close</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

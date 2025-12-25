@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { sendMessage } from "@/app/actions/sendMessage";
+import { sendContactMessage } from "@/app/actions/sendContactMessage";
 
 export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
 
   async function handleSubmit(formData: FormData) {
-    const result = await sendMessage(formData);
+    const result = await sendContactMessage(formData);
     setStatus(result.success ? "sent" : "error");
   }
 

@@ -61,7 +61,7 @@ export default function Header() {
             <Link href="/mybookings" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
               My Bookings
             </Link>
-            <Link href="/contact" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
+            <Link href="/support" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
               Support
             </Link>
             <button

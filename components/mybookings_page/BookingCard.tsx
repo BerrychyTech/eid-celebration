@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { Booking } from "@/types/mybookings";
 import { StatusBadge } from "./StatusBadge";
-import { FaSyncAlt, FaTimes } from "react-icons/fa";
+import { FaSyncAlt, FaTimes, FaLifeRing } from "react-icons/fa";
 import MockMovingMap from "./MockMovingMap";
 
 export function BookingsCard({
@@ -30,16 +31,15 @@ export function BookingsCard({
         {booking.travelDate} • {booking.class} • {booking.seats} seat(s)
       </p>
 
-      {/* 🔥 Add the map here for upcoming trips */}
       {showMap && <MockMovingMap />}
 
-      <div className="mt-2 flex gap-4">
+      <div className="mt-3 flex gap-4 flex-wrap">
         {activeTab === "upcoming" && booking.status === "confirmed" && (
           <button
             onClick={() => onCancel(booking.id)}
-            className="text-primary dark:text-dark-primary hover:underline text-sm flex items-center gap-1"
+            className="text-primary hover:underline text-sm flex items-center gap-1"
           >
-            <FaTimes className="text-xs text-primary" />
+            <FaTimes className="text-xs" />
             Cancel
           </button>
         )}
@@ -47,12 +47,28 @@ export function BookingsCard({
         {activeTab === "past" && booking.status === "completed" && (
           <button
             onClick={() => onRebook(booking.id)}
-            className="text-primary dark:text-dark-primary hover:underline text-sm flex items-center gap-1"
+            className="text-primary hover:underline text-sm flex items-center gap-1"
           >
             <FaSyncAlt className="text-xs" />
             Rebook
           </button>
         )}
+
+        {/* 🆘 Support Link */}
+        <Link
+          href={{
+            pathname: `/support/${booking.id}`,
+            query: {
+              from: booking.fromTown,
+              to: booking.toTown,
+              date: booking.travelDate,
+            },
+          }}
+          className="text-primary hover:underline text-sm flex items-center gap-1"
+        >
+          <FaLifeRing className="text-xs" />
+          Get Help
+        </Link>
       </div>
     </li>
   );

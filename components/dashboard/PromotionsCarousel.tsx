@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 
 const promos = [
+  { title: "Refer & earn ₦500", desc: "refer a fleet partner", href: "#" },
   { title: "10% off to Kano", desc: "Limited time", href: "#" },
   { title: "Group booking perks", desc: "Book full car & save", href: "#" },
   { title: "Refer & earn ₦500", desc: "Share with friends", href: "#" },

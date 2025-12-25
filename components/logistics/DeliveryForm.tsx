@@ -5,26 +5,40 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import VerificationModal from "./VerificationModal";
-import { DeliveryRequest } from "@/types/delivery";
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
 
+/* =========================
+   ✅ SCHEMA (EXTENDED)
+   ========================= */
 const schema = z.object({
+  id: z.string().optional(), // public delivery ID (backend may override)
+  senderName: z.string().min(1, "Sender name is required"),
+  receiverName: z.string().min(1, "Receiver name is required"),
+  receiverPhone: z
+    .string()
+    .min(10, "Receiver phone is required"),
+
   pickupState: z.string().min(1, "Pickup state is required"),
   pickupTown: z.string().min(1, "Pickup town is required"),
   destinationState: z.string().min(1, "Destination state is required"),
   destinationTown: z.string().min(1, "Destination town is required"),
   category: z.string().min(1, "Category is required"),
   description: z.string().min(5, "Description must be at least 5 characters"),
-  images: z
-    .any()
-    .refine((files) => files?.length > 0, "At least one image is required"),
+  images: z.any().refine(
+    (files) => files?.length > 0,
+    "At least one image is required"
+  ),
 });
 
 type FormData = z.infer<typeof schema>;
 
 export default function DeliveryForm() {
-  const [modalType, setModalType] = useState<null | "submitted" | "verified" | "mismatch">(null);
+  const [modalType, setModalType] =
+    useState<null | "submitted" | "verified" | "mismatch">(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [correctCategory, setCorrectCategory] = useState<string | undefined>(undefined);
+  const [correctCategory, setCorrectCategory] =
+    useState<string | undefined>(undefined);
 
   const {
     register,
@@ -36,69 +50,125 @@ export default function DeliveryForm() {
     resolver: zodResolver(schema),
   });
 
-    const onSubmit = (data: FormData) => {
+  /* =========================
+     ✅ API HELPERS
+     ========================= */
+  const getAuthHeader = () => {
+    const token = useAuthStore.getState().token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const uploadImages = async (files: FileList): Promise<string[]> => {
+    return Array.from(files).map(
+      (file) => `/uploads/deliveries/${file.name}`
+    );
+  };
+
+  /* =========================
+     ✅ SUBMIT (EXTENDED)
+     ========================= */
+  const onSubmit = async (data: FormData) => {
     setModalType("submitted");
 
-    setTimeout(() => {
-        const match = Math.random() > 0.5; // Random match simulation
+    try {
+      const imageUrls = await uploadImages(data.images);
+
+      const payload = {
+        id: data.id,
+        senderName: data.senderName,
+        receiverName: data.receiverName,
+        receiverPhone: data.receiverPhone,
+
+        pickupState: data.pickupState,
+        pickupTown: data.pickupTown,
+        destinationState: data.destinationState,
+        destinationTown: data.destinationTown,
+        category: data.category,
+        description: data.description,
+        images: imageUrls,
+        estimatedFee: 1200,
+      };
+
+      await api.post("/deliveries", payload, {
+        headers: getAuthHeader(),
+      });
+
+      setTimeout(() => {
+        const match = Math.random() > 0.5;
         if (match) {
-        setModalType("verified");
+          setModalType("verified");
         } else {
-        // Provide the correct category dynamically
-        setCorrectCategory("Fragile Items"); // Replace with real verification result in real app
-        setModalType("mismatch");
+          setCorrectCategory("Fragile Items");
+          setModalType("mismatch");
         }
-    }, 3000);
-    };
+      }, 3000);
+
+    } catch (err: any) {
+      console.error("❌ Delivery submit error:", err);
+      alert(err.response?.data?.error || "Failed to submit delivery");
+      setModalType(null);
+    }
+  };
 
   const watchPickupState = watch("pickupState");
   const watchDestinationState = watch("destinationState");
 
   const handleImagePreview = (files: FileList | null) => {
     if (!files) return;
-    const previews = Array.from(files).map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
+    setImagePreviews(
+      Array.from(files).map((file) => URL.createObjectURL(file))
+    );
   };
 
-  // State and towns mapping
   const states = ["Kano", "Jigawa"];
   const townsMap: Record<string, string[]> = {
     Kano: ["Kano"],
     Jigawa: ["Gumel", "Dutse", "Hadejia"],
   };
 
-
-  const destinationTownsOptions = watchDestinationState
-  ? townsMap[watchDestinationState].filter(t => t !== watch("pickupTown"))
-  : [];
-  
-  // Auto-set the opposite state for destination
   useEffect(() => {
     if (watchPickupState) {
-      setValue("destinationState", watchPickupState === "Kano" ? "Jigawa" : "Kano");
+      setValue(
+        "destinationState",
+        watchPickupState === "Kano" ? "Jigawa" : "Kano"
+      );
       setValue("destinationTown", "");
     }
   }, [watchPickupState, setValue]);
 
   useEffect(() => {
     if (watchDestinationState) {
-      setValue("pickupState", watchDestinationState === "Kano" ? "Jigawa" : "Kano");
+      setValue(
+        "pickupState",
+        watchDestinationState === "Kano" ? "Jigawa" : "Kano"
+      );
       setValue("pickupTown", "");
     }
   }, [watchDestinationState, setValue]);
 
   const categories = [
-    "Small Box","Medium Box","Large Box","Sack – Small","Sack – Big","Envelope / Documents",
-    "Electronics","Fragile Items","Clothes / Fabric Bag","Foodstuff (non-perishable)","Grocery Bag",
-    "Household Items","Personal Items","Wholesale Sack (Big)","Carton Goods","Packed Drinks",
-    "Retail Bags","Industrial Samples","Luggage","Shoes / Fashion Products","Books","Office Items",
+    "Small Box","Medium Box","Large Box","Sack – Small","Sack – Big",
+    "Envelope / Documents","Electronics","Fragile Items",
+    "Clothes / Fabric Bag","Foodstuff (non-perishable)",
+    "Grocery Bag","Household Items","Personal Items",
+    "Wholesale Sack (Big)","Carton Goods","Packed Drinks",
+    "Retail Bags","Industrial Samples","Luggage",
+    "Shoes / Fashion Products","Books","Office Items",
     "Spare Parts","Light Tools","Custom Category"
   ];
 
   return (
     <section className="p-6 bg-cardBg dark:bg-dark-cardBg rounded-2xl shadow-md">
       <h2 className="text-xl font-semibold mb-4">Request Delivery</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
+        {/* Customer & Parties */}
+        <input {...register("senderName")} placeholder="Sender Name" className="p-3 rounded-lg bg-formBg w-full" />
+        <input {...register("receiverName")} placeholder="Receiver Name" className="p-3 rounded-lg bg-formBg w-full" />
+        <input {...register("receiverPhone")} placeholder="Receiver Phone" className="p-3 rounded-lg bg-formBg w-full" />
 
         {/* Pickup State */}
         <div>
@@ -175,16 +245,15 @@ export default function DeliveryForm() {
         <button type="submit" className="bg-primary text-white py-3 rounded-lg col-span-1 md:col-span-2">
           Request Delivery
         </button>
-
       </form>
 
-     {modalType && (
-    <VerificationModal
-      type={modalType}
-        setType={setModalType}
-        correctCategory={correctCategory}
+      {modalType && (
+        <VerificationModal
+          type={modalType}
+          setType={setModalType}
+          correctCategory={correctCategory}
         />
-     )}    
+      )}
     </section>
   );
 }
