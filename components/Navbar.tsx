@@ -11,9 +11,9 @@ import DarkModeToggle from "./DarkModeToggle";
 const menu = [
   { label: "Home", href: "/" },
   { label: "Book a Ride", href: "/book" },
-  { label: "Track My Booking", href: "/mybookings" },
-  { label: "Become a Fleet Partner", href: "/fleet-partner" },
-  { label: "FAQs / About", href: "/about" },
+  { label: "My Bookings", href: "/mybookings" },
+  { label: "Fleet Partner", href: "/fleet-partner" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 

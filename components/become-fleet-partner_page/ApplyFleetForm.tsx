@@ -12,13 +12,14 @@ export default function ApplyForm() {
         action={sendFleetForm}
         className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto bg-cardBg dark:bg-dark-cardBg p-8 rounded-xl shadow"
       >
-        <input name="name" required placeholder="Full name" className="input" />
-        <input name="email" required placeholder="Email" className="input" />
-        <input name="phone" required placeholder="Phone number" className="input" />
+        <input name="name" required placeholder="Full name" className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+        <input name="email" required placeholder="Email" className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+        <input name="phone" required placeholder="Phone number" className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
 
-        <input name="vehicles" required placeholder="Number of vehicles" className="input" />
+        <input name="vehicles" required placeholder="Number of vehicles" className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+        <input name="vehicles Name(s)" required placeholder="vehicle name(s)" className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
 
-        <select name="driver" className="input">
+        <select name="driver" className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary">
           <option>Do you already have a driver?</option>
           <option>Yes</option>
           <option>No</option>
@@ -28,7 +29,7 @@ export default function ApplyForm() {
           name="message"
           rows={4}
           placeholder="Message (optional)"
-          className="input md:col-span-2"
+          className="w-full px-3 py-2 rounded-md border bg-card dark:bg-dark-card border-gray-300 dark:border-gray-600 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary md:col-span-2"
         />
 
         <button

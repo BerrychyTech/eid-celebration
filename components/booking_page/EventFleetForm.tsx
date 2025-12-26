@@ -6,15 +6,12 @@ import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const states = ["Kano", "Jigawa"];
-const townsMap: Record<string, string[]> = {
-  Kano: ["Kano"],
-  Jigawa: ["Gumel", "Dutse", "Hadejia"],
-};
+const pickupState = "Jigawa";
+const jigawaTowns = ["Gumel", "Dutse", "Hadejia"];
 
 export default function EventFleetForm() {
   const [form, setForm] = React.useState({
-    pickupState: "",
+    pickupState,
     pickupTown: "",
     destinationState: "",
     destinationTown: "",
@@ -23,6 +20,9 @@ export default function EventFleetForm() {
     eventType: "",
     vehicleType: "",
     quantity: "1",
+    tripFlow: "", // go only / go & return
+    stayDuration: "", // hours or days
+    journeyDescription: "", // optional textarea
     notes: "",
   });
 
@@ -30,34 +30,79 @@ export default function EventFleetForm() {
   const [showWaitingPage, setShowWaitingPage] = React.useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFleetRequest = () => {
-    // Check required fields
-    const required = ["pickupState", "pickupTown", "destinationState", "destinationTown", "eventDate", "eventTime", "eventType", "vehicleType"];
+    const token = useAuthStore.getState().token;
+
+  const handleFleetRequest = async () => {
+    const required = [
+      "pickupTown",
+      "destinationState",
+      "destinationTown",
+      "eventDate",
+      "eventTime",
+      "eventType",
+      "vehicleType",
+      "tripFlow",
+    ];
+
     const empty = required.find((f) => !form[f as keyof typeof form]);
     if (empty) {
       toast.error("Please fill all required fields.");
       return;
     }
 
-    // Show popup
-    if (window.confirm(
+    const confirmed = window.confirm(
       "Your fleet request payment schedule is being prepared.\nYou shall be updated within five minutes."
-    )) {
-      // Replace form with waiting page
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+
+      await api.post(
+        "/event-fleet",
+        {
+          pickupState,
+          pickupTown: form.pickupTown,
+          destinationState: form.destinationState,
+          destinationTown: form.destinationTown,
+          eventDate: form.eventDate,
+          eventTime: form.eventTime,
+          tripFlow: form.tripFlow,
+          stayDuration: form.stayDuration || null,
+          eventType: form.eventType,
+          vehicleType: form.vehicleType,
+          quantity: Number(form.quantity),
+          journeyDescription: form.journeyDescription || null,
+          notes: form.notes || null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success("Fleet request submitted successfully 🚐");
       setShowWaitingPage(true);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(
+        error?.response?.data?.message || "Failed to submit fleet request"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Destination towns excluding pickup town
-  const destinationTownsOptions = form.destinationState
-    ? townsMap[form.destinationState].filter((t) => t !== form.pickupTown)
-    : [];
 
   if (showWaitingPage) {
     return (
@@ -76,18 +121,15 @@ export default function EventFleetForm() {
   return (
     <form className="bg-cardBg dark:bg-dark-cardBg p-6 rounded-lg shadow space-y-6 font-poppins">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Pickup State */}
+
+        {/* Pickup State (Fixed) */}
         <div>
           <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">Pickup State</label>
-          <select
-            name="pickupState"
-            value={form.pickupState}
-            onChange={handleChange}
+          <input
+            value="Jigawa"
+            disabled
             className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
-          >
-            <option value="">Select Pickup State</option>
-            {states.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          />
         </div>
 
         {/* Pickup Town */}
@@ -99,37 +141,37 @@ export default function EventFleetForm() {
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
           >
-            <option value="">Select Pickup Town</option>
-            {form.pickupState && townsMap[form.pickupState].map((t) => <option key={t} value={t}>{t}</option>)}
+            <option value="">Select Town</option>
+            {jigawaTowns.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
           </select>
         </div>
 
-        {/* Destination State */}
+        {/* Destination State (Input) */}
         <div>
           <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">Destination State</label>
-          <select
+          <input
+            type="text"
             name="destinationState"
             value={form.destinationState}
             onChange={handleChange}
+            placeholder="e.g. Kano"
             className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
-          >
-            <option value="">Select Destination State</option>
-            {states.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          />
         </div>
 
-        {/* Destination Town */}
+        {/* Destination Town (Input) */}
         <div>
           <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">Destination Town</label>
-          <select
+          <input
+            type="text"
             name="destinationTown"
             value={form.destinationTown}
             onChange={handleChange}
+            placeholder="e.g. Nassarawa"
             className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
-          >
-            <option value="">Select Destination Town</option>
-            {destinationTownsOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
+          />
         </div>
 
         {/* Event Date */}
@@ -146,12 +188,42 @@ export default function EventFleetForm() {
 
         {/* Event Time */}
         <div>
-          <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">Time</label>
+          <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">Event Time</label>
           <input
             type="time"
             name="eventTime"
             value={form.eventTime}
             onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
+          />
+        </div>
+
+        {/* Journey Flow */}
+        <div>
+          <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">Journey Flow</label>
+          <select
+            name="tripFlow"
+            value={form.tripFlow}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
+          >
+            <option value="">Select Flow</option>
+            <option value="one_way">One-Way Voyage</option>
+            <option value="round_trip">Go & Graceful Return</option>
+          </select>
+        </div>
+
+        {/* Stay Duration */}
+        <div>
+          <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">
+            Time Spent at Destination
+          </label>
+          <input
+            type="text"
+            name="stayDuration"
+            value={form.stayDuration}
+            onChange={handleChange}
+            placeholder="e.g. 6 hours / 2 days"
             className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
           />
         </div>
@@ -184,10 +256,10 @@ export default function EventFleetForm() {
             className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
           >
             <option value="">Select</option>
-            <option value="bus">Bus</option>
-            <option value="suv">SUV</option>
-            <option value="car">Car</option>
-            <option value="hiace">Hiace</option>
+            <option value="bus">Rolls Royce</option>
+            <option value="suv">Ferrari</option>
+            <option value="car">Lamborghini</option>
+            <option value="hiace">Homa</option>
           </select>
         </div>
 
@@ -206,12 +278,27 @@ export default function EventFleetForm() {
         </div>
       </div>
 
+      {/* Journey Description (Optional) */}
+      <div>
+        <label className="text-text dark:text-dark-text text-sm font-medium mb-1 block">
+          Journey Description (Optional)
+        </label>
+        <textarea
+          name="journeyDescription"
+          value={form.journeyDescription}
+          onChange={handleChange}
+          rows={4}
+          placeholder="Anything special we should know about this journey?"
+          className="w-full px-3 py-2 border rounded-md bg-accentBg dark:bg-dark-accentBg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
+        />
+      </div>
+
       <div className="text-right">
         <button
           type="button"
           disabled={loading}
           onClick={handleFleetRequest}
-          className="bg-primary dark:bg-dark-primary hover:bg-primary/80 dark:hover:bg-dark-primary/80 text-white px-6 py-3 rounded-lg font-semibold transition"
+          className="bg-primary text-white px-6 py-3 rounded-lg font-semibold transition"
         >
           {loading ? "Submitting..." : "🔘 Request Fleet"}
         </button>

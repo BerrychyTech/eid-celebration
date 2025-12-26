@@ -12,7 +12,10 @@ import { Booking } from "@/types/mybookings";
 
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = React.useState<"upcoming" | "past">("upcoming");
-  const [bookings, setBookings] = React.useState<Booking[]>([]);
+  const [bookings, setBookings] = React.useState<{
+    regular: Booking[],
+    eventFleet: any[],
+  }>({ regular: [], eventFleet: [] });
   const [loading, setLoading] = React.useState(true);
 
   const token = useAuthStore.getState().token;
@@ -20,24 +23,33 @@ export default function BookingsPage() {
   const fetchBookings = async () => {
     if (!token) return;
     setLoading(true);
+
     try {
-      const endpoint =
-        activeTab === "upcoming"
-          ? "/upcoming"
-          : "/past?page=1&limit=20";
+      // Determine endpoints based on tab
+      const regularEndpoint = activeTab === "upcoming" ? "/upcoming" : "/past?page=1&limit=20";
+      const eventFleetEndpoint = activeTab === "upcoming" ? "/event-fleet/my/upcoming" : "/event-fleet/my/past?page=1&limit=20";
 
-      const res = await api.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+      // Fetch both in parallel
+      const [regularRes, eventRes] = await Promise.all([
+        api.get(regularEndpoint, { headers: { Authorization: `Bearer ${token}` } }),
+        api.get(eventFleetEndpoint, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+
+      // Extract data
+      const regularBookings = activeTab === "upcoming" ? regularRes.data.upcoming : regularRes.data.bookings;
+      const eventFleetBookings = activeTab === "upcoming" ? eventRes.data.upcoming : eventRes.data.past;
+
+      setBookings({
+        regular: regularBookings || [],
+        eventFleet: eventFleetBookings || [],
       });
-
-      const list = activeTab === "upcoming" ? res.data.upcoming : res.data.bookings;
-      setBookings(list || []);
     } catch (err) {
       toast.error("❌ Failed to load bookings.");
     } finally {
       setLoading(false);
     }
   };
+
 
   React.useEffect(() => {
     fetchBookings();
@@ -83,12 +95,13 @@ export default function BookingsPage() {
         <BookingTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         <BookingList
-          bookings={bookings}
+          bookings={[...bookings.regular, ...bookings.eventFleet]} // optional combined view
           loading={loading}
           activeTab={activeTab}
           onCancel={cancelBooking}
           onRebook={rebookBooking}
         />
+
       </main>
 
       <Footer />

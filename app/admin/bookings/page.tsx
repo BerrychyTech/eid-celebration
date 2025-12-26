@@ -118,25 +118,25 @@ export default function BookingsDashboard() {
             <NavCard
               title="Fleet Quotations"
               desc="Review requests and assign fleet pricing"
-              href="/admin/bookings/fleet/quotations"
+              href="/admin/bookings/fleets/quotations"
               buttonLabel="Open Requests"
             />
             <NavCard
               title="Today’s Fleet Trips"
               desc="Fleet rides scheduled or running today"
-              href="/admin/bookings/fleet/today"
+              href="/admin/bookings/fleets/today"
               buttonLabel="View Today"
             />
             <NavCard
               title="Upcoming Fleet Trips"
               desc="Approved fleet trips awaiting execution"
-              href="/admin/bookings/fleet/upcoming"
+              href="/admin/bookings/fleets/upcoming"
               buttonLabel="View Upcoming"
             />
             <NavCard
               title="Past Fleet Trips"
               desc="Completed and closed fleet bookings"
-              href="/admin/bookings/fleet/past"
+              href="/admin/bookings/fleets/past"
               buttonLabel="View History"
             />
           </>
