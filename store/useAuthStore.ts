@@ -7,6 +7,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 type User = {
   fullName?: string;
   email: string;
+  phoneNumber : string;
   [key: string]: any;
 };
 

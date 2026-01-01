@@ -89,7 +89,7 @@ export default function BookingSuccessPage() {
       <Header />
 
       <main className="min-h-screen bg-background dark:bg-dark-background text-text dark:text-dark-text font-poppins px-4 py-10">
-        <div className="max-w-xl mx-auto bg-card dark:bg-dark-card p-8 rounded-lg shadow">
+        <div className="max-w-xl mx-auto bg-cardBg dark:bg-dark-cardBg p-8 rounded-lg shadow">
 
           {/* Success Icon */}
           <div className="text-center mb-6">

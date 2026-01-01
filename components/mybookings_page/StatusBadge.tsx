@@ -12,6 +12,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     confirmed: "bg-primary text-white dark:bg-dark-primary dark:text-white",
     completed: "bg-primary text-white dark:bg-dark-primary dark:text-white",
     cancelled: "bg-red-900 text-danger dark:bg-dark-dangerBg dark:text-dark-danger",
+    new: "bg-primary text-white dark:bg-dark-primary dark:text-white"
   };
 
   return <span className={`${base} ${styles[status]}`}>{status}</span>;

@@ -69,6 +69,16 @@ export function BookingsCard({
           <FaLifeRing className="text-xs" />
           Get Help
         </Link>
+
+        {!booking.tripPrice && (
+          <Link
+            href={`/event-fleet/${booking.id}/pay`}
+            className="text-green-600 hover:underline text-sm flex items-center gap-1"
+          >
+            💰 View Price & Pay
+          </Link>
+        )}
+
       </div>
     </li>
   );

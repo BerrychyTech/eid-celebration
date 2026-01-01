@@ -1,15 +1,12 @@
 "use client";
 
+import { AuthFormData } from "@/components/auth/validation";
 import { useState } from "react";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onCreate: (user: {
-    name: string;
-    email: string;
-    phone: string;
-  }) => void;
+  onCreate: (data: AuthFormData) => void;
 };
 
 export default function CreateNewUserModal({
@@ -20,20 +17,23 @@ export default function CreateNewUserModal({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [pwd, setPwd] = useState("");
 
   function handleSubmit() {
     if (!name || !email) return;
 
     onCreate({
-      name,
+      fullName: name,
       email,
       phone,
+      password: pwd,
     });
 
     // reset form
     setName("");
     setEmail("");
     setPhone("");
+    setPwd("");
     onClose();
   }
 
@@ -76,6 +76,18 @@ export default function CreateNewUserModal({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="080xxxxxxxx"
+            className="mt-1 w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+          />
+        </div>
+
+                {/* PWD */}
+        <div>
+          <label className="text-sm text-neutral-600">Password</label>
+          <input
+            type="password"
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+            placeholder="********"
             className="mt-1 w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
           />
         </div>

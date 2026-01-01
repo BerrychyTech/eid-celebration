@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { mockUsers, NormalUser } from "@/mock/users";
 import CreateNewUserModal from "@/components/admin/users/CreateNewUserModal";
+import { registerUser } from "@/types/services/registerUser";
+import { toast } from "react-hot-toast";
+import { AuthFormData } from "@/components/auth/validation";
+
 export default function UsersManagementPage() {
   const [users, setUsers] = useState<NormalUser[]>(mockUsers);
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,23 +21,30 @@ export default function UsersManagementPage() {
     );
   }
 
-  function handleCreateUser(user: {
-    name: string;
-    email: string;
-    phone?: string;
-  }) {
-    const newUser: NormalUser = {
-      id: `${Date.now()}`,
-      name: user.name,
-      email: user.email,
-      phone: user.phone ?? "",
-      status: "active",
-      verified: false,
-      createdAt: new Date().toLocaleDateString(),
-    };
+  async function handleCreateUser(data: AuthFormData) {
+    try {
+      const res = await registerUser(data, {
+        onSuccess: () => toast.success("User created successfully"),
+        onError: () => toast.error("Failed to create user"),
+      });
 
-    setUsers((prev) => [...prev, newUser]);
+      const newUser: NormalUser = {
+        id: `${Date.now()}`,
+        name: data.fullName!,
+        email: data.email,
+        phone: data.phone || "",
+        status: "active",
+        verified: false,
+        createdAt: new Date().toLocaleDateString(),
+      };
+
+      setUsers((prev) => [...prev, newUser]);
+    } catch {
+      // already handled by toast
+    }
   }
+
+
 
   return (
     <div className="p-6 space-y-6">
