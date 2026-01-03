@@ -103,7 +103,7 @@ export default function BookingsDashboard() {
             <NavCard
               title="Past Rides"
               desc="Completed and cancelled ride history"
-              href="/admin/bookings/rides/past"
+              href="/admin/bookings/rides/past-rides"
               buttonLabel="View History"
             />
             <NavCard

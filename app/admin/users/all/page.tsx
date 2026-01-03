@@ -76,7 +76,7 @@ export default function UsersManagementPage() {
               <th className="p-4 text-left">Email</th>
               <th className="p-4 text-left">Phone</th>
               <th className="p-4 text-left">Status</th>
-              <th className="p-4 text-left">Verified</th>
+              <th className="p-4 text-left">email Verified</th>
               <th className="p-4 text-left">Created At</th>
               <th className="p-4 text-right">Action</th>
             </tr>

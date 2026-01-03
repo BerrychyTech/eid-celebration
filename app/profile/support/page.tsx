@@ -2,6 +2,18 @@
 
 import Header from "@/components/Navbar";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaCar,
+  FaTruck,
+  FaBus,
+  FaCheckCircle,
+  FaLifeRing,
+  FaPhoneAlt,
+  FaWhatsapp,
+  FaBell,
+  FaPaperclip,
+} from "react-icons/fa";
 
 /* ================= TYPES ================= */
 
@@ -34,6 +46,24 @@ const fleetRequests = [
   { id: "FR-1889", label: "10 Aug • Lekki" },
 ];
 
+const issueCategories: IssueCategory[] = [
+  "Payment Issue",
+  "Ride Problem",
+  "Delivery Delay",
+  "Safety Concern",
+  "App Bug",
+  "Other",
+];
+
+/* ================= ANIMATIONS ================= */
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0 },
+};
+
+/* ================= COMPONENT ================= */
+
 export default function SupportPage() {
   const [context, setContext] = useState<ContextType>(null);
   const [linkedId, setLinkedId] = useState("");
@@ -46,17 +76,7 @@ export default function SupportPage() {
   const [success, setSuccess] = useState(false);
 
   const canSubmit =
-    context &&
-    linkedId &&
-    category &&
-    message.trim().length > 0;
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
-    setSuccess(true);
-  };
+    context && linkedId && category && message.trim().length > 0;
 
   const relatedList =
     context === "ride"
@@ -65,192 +85,254 @@ export default function SupportPage() {
       ? deliveries
       : fleetRequests;
 
+  const handleSubmit = async () => {
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1500));
+    setLoading(false);
+    setSuccess(true);
+  };
+
   return (
     <>
-        <Header />
-        <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)] flex flex-col">
-          {/* CONTENT */}
-          <div className="flex-1 px-4 pt-6 pb-40 max-w-xl mx-auto w-full">
-              {/* Header */}
-              <h1 className="text-2xl font-bold mb-1">
-                  🆘 Contact BerryGo Support
-              </h1>
-              <p className="text-sm text-[var(--color-muted)] mb-1">
-                  Tell us what went wrong. We’ll take it from here.
-              </p>
-              <p className="text-xs text-[var(--color-muted)] mb-6">
-                  ⏱ Average response time: under 2 hours
-              </p>
+      <Header />
 
-              {/* Step 1 */}
-              <h3 className="font-semibold mb-2">
-                  What is this about?
-              </h3>
-              <div className="grid grid-cols-3 gap-2 mb-6">
-                  {[
-                      { key: "ride", label: "🚗 Ride" },
-                      { key: "delivery", label: "🚚 Delivery" },
-                      { key: "fleet", label: "🚐 Fleet Request" },
-                  ].map((item) => (
-                      <button
-                          key={item.key}
-                          onClick={() => {
-                              setContext(item.key as ContextType);
-                              setLinkedId("");
-                          } }
-                          className={`rounded-lg py-3 text-sm border transition ${context === item.key
-                                  ? "border-[var(--color-primary)] bg-[var(--color-background)]"
-                                  : "border-[var(--color-muted)] bg-[var(--color-formBg)]"}`}
-                      >
-                          {item.label}
-                      </button>
+      <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+        <div className="px-4 pt-6 pb-40 max-w-xl mx-auto">
+
+          {/* HEADER */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+          >
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <FaLifeRing /> Contact Support
+            </h1>
+            <p className="text-sm text-[var(--color-muted)]">
+              Tell us what went wrong. We’ll handle the rest.
+            </p>
+          </motion.div>
+
+          {/* CONTEXT */}
+          <motion.div
+            className="mt-6 grid grid-cols-3 gap-3"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+          >
+            {[
+              { key: "ride", label: "Ride", icon: FaCar },
+              { key: "delivery", label: "Delivery", icon: FaTruck },
+              { key: "fleet", label: "Fleet", icon: FaBus },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => {
+                  setContext(key as ContextType);
+                  setLinkedId("");
+                }}
+                className={`rounded-xl p-4 flex flex-col items-center gap-2 border transition-all
+                  ${
+                    context === key
+                      ? "bg-white border-[var(--color-primary)] shadow-md scale-[1.02]"
+                      : "bg-[var(--color-cardBg)] hover:shadow-sm"
+                  }`}
+              >
+                <Icon className="text-lg" />
+                <span className="text-sm">{label}</span>
+              </button>
+            ))}
+          </motion.div>
+
+          {/* RELATED ACTIVITY */}
+          <AnimatePresence>
+            {context && (
+              <motion.div
+                className="mt-8"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={fadeUp}
+              >
+                <h3 className="font-semibold mb-2">
+                  Select Related Activity
+                </h3>
+
+                <div className="rounded-xl overflow-hidden border">
+                  {relatedList.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setLinkedId(item.id)}
+                      className={`w-full text-left p-4 border-b last:border-b-0 transition
+                        ${
+                          linkedId === item.id
+                            ? "bg-white ring-2 ring-[var(--color-primary)]"
+                            : "bg-[var(--color-cardBg)] hover:bg-white"
+                        }`}
+                    >
+                      <p className="font-medium">{item.id}</p>
+                      <p className="text-xs text-[var(--color-muted)]">
+                        {item.label}
+                      </p>
+                    </button>
                   ))}
-              </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              {/* Step 2 */}
-              {context && (
-                  <>
-                      <h3 className="font-semibold mb-2">
-                          Select Related Activity
-                      </h3>
-                      <div className="rounded-lg overflow-hidden border border-[var(--color-muted)] mb-6">
-                          {relatedList.map((item) => (
-                              <button
-                                  key={item.id}
-                                  onClick={() => setLinkedId(item.id)}
-                                  className={`w-full text-left p-3 border-b last:border-b-0 transition ${linkedId === item.id
-                                          ? "bg-[var(--color-background)]"
-                                          : "bg-[var(--color-cardBg)]"}`}
-                              >
-                                  <p className="font-medium">{item.id}</p>
-                                  <p className="text-xs text-[var(--color-muted)]">
-                                      {item.label}
-                                  </p>
-                              </button>
-                          ))}
-                      </div>
-                  </>
-              )}
+          {/* ISSUE CATEGORY */}
+          <motion.div
+            className="mt-8"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+          >
+            <h3 className="font-semibold mb-2">Issue Category</h3>
 
-              {/* Step 3 */}
-              <h3 className="font-semibold mb-2">
-                  Issue Category
-              </h3>
-              <div className="rounded-lg overflow-hidden border border-[var(--color-muted)] mb-3">
-                  {[
-                      "Payment Issue",
-                      "Ride Problem",
-                      "Delivery Delay",
-                      "Safety Concern",
-                      "App Bug",
-                      "Other",
-                  ].map((item) => (
-                      <button
-                          key={item}
-                          onClick={() => setCategory(item as IssueCategory)}
-                          className={`w-full text-left p-3 border-b last:border-b-0 transition ${category === item
-                                  ? "bg-[var(--color-background)]"
-                                  : "bg-[var(--color-cardBg)]"}`}
-                      >
-                          {item}
-                      </button>
-                  ))}
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {issueCategories.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setCategory(item)}
+                  className={`px-4 py-2 rounded-full text-sm transition
+                    ${
+                      category === item
+                        ? "bg-[var(--color-primary)] text-white"
+                        : "bg-[var(--color-cardBg)] hover:bg-white border"
+                    }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </motion.div>
 
-              {category === "Safety Concern" && (
-                  <div className="bg-yellow-50 border border-yellow-300 p-3 rounded-lg mb-4 text-sm text-yellow-800">
-                      ⚠️ If this is urgent or unsafe, please contact
-                      emergency services immediately.
-                  </div>
-              )}
+          {/* MESSAGE */}
+          <motion.div
+            className="mt-8"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+          >
+            <h3 className="font-semibold mb-2">Describe the Issue</h3>
+            <textarea
+              value={message}
+              maxLength={500}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Briefly explain what happened…"
+              className="w-full h-28 p-4 rounded-xl border bg-[var(--color-formBg)]
+                         focus:ring-2 focus:ring-[var(--color-primary)] outline-none"
+            />
+            <p className="text-right text-xs text-[var(--color-muted)]">
+              {message.length} / 500
+            </p>
+          </motion.div>
 
-              {/* Step 4 */}
-              <h3 className="font-semibold mb-2">
-                  Describe the Issue
-              </h3>
-              <textarea
-                  value={message}
-                  maxLength={500}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Briefly explain what happened…"
-                  className="w-full h-28 p-3 rounded-lg border border-[var(--color-muted)] bg-[var(--color-formBg)] text-sm" />
-              <p className="text-right text-xs text-[var(--color-muted)] mb-6">
-                  {message.length} / 500
-              </p>
+          {/* ATTACHMENT */}
+          <motion.div
+            className="mt-8"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+          >
+            <h3 className="font-semibold mb-2">
+              Attach Evidence (Optional)
+            </h3>
 
-              {/* Step 5 */}
-              <h3 className="font-semibold mb-2">
-                  Attach Evidence (Optional)
-              </h3>
-              <div className="border border-dashed border-[var(--color-muted)] rounded-lg p-4 mb-6 text-sm text-[var(--color-muted)]">
-                  📎 Upload screenshots or photos (JPG, PNG, max 3)
-              </div>
+            <div className="border-2 border-dashed rounded-xl p-6 text-center text-sm text-[var(--color-muted)] hover:border-[var(--color-primary)] transition">
+              <FaPaperclip className="mx-auto mb-2" />
+              Drag & drop or tap to upload
+            </div>
+          </motion.div>
 
-              {/* Step 6 */}
-              <h3 className="font-semibold mb-2">
-                  Location Context
-              </h3>
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                  {["State", "Town"].map((label, i) => (
-                      <div
-                          key={label}
-                          className="rounded-lg p-3 border border-[var(--color-muted)] bg-[var(--color-cardBg)]"
-                      >
-                          <p className="text-xs text-[var(--color-muted)]">
-                              {label}
-                          </p>
-                          <p>{i === 0 ? "Lagos" : "Ikeja"}</p>
-                      </div>
-                  ))}
-              </div>
+          {/* CONTACT METHOD */}
+          <motion.div
+            className="mt-8"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+          >
+            <h3 className="font-semibold mb-2">Preferred Contact</h3>
 
-              {/* Step 7 */}
-              <h3 className="font-semibold mb-2">
-                  Preferred Contact Method
-              </h3>
-              <div className="space-y-2 mb-4">
-                  {[
-                      { key: "inApp", label: "In-app notification" },
-                      { key: "phone", label: "Phone call" },
-                      { key: "whatsapp", label: "WhatsApp" },
-                  ].map((item) => (
-                      <label
-                          key={item.key}
-                          className="flex items-center gap-2 cursor-pointer text-sm"
-                      >
-                          <input
-                              type="radio"
-                              checked={contactMethod === item.key}
-                              onChange={() => setContactMethod(
-                                  item.key as ContactMethod
-                              )}
-                              className="accent-[var(--color-primary)]" />
-                          {item.label}
-                      </label>
-                  ))}
-              </div>
+            <div className="space-y-2 text-sm">
+              {[
+                { key: "inApp", label: "In-app notification", icon: FaBell },
+                { key: "phone", label: "Phone call", icon: FaPhoneAlt },
+                { key: "whatsapp", label: "WhatsApp", icon: FaWhatsapp },
+              ].map(({ key, label, icon: Icon }) => (
+                <label
+                  key={key}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    checked={contactMethod === key}
+                    onChange={() => setContactMethod(key as ContactMethod)}
+                  />
+                  <Icon /> {label}
+                </label>
+              ))}
+            </div>
 
-              <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full p-3 rounded-lg border border-[var(--color-muted)] bg-[var(--color-formBg)]" />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="mt-3 w-full p-3 rounded-xl border bg-[var(--color-formBg)]"
+            />
+          </motion.div>
+        </div>
+
+        {/* ACTION BAR */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-4">
+          <div className="max-w-xl mx-auto">
+            <button
+              disabled={!canSubmit || loading}
+              onClick={handleSubmit}
+              className={`w-full py-3 rounded-xl font-semibold transition active:scale-[0.98]
+                ${
+                  canSubmit
+                    ? "bg-[var(--color-primary)] text-white shadow-lg"
+                    : "bg-gray-300 text-white"
+                }`}
+            >
+              {loading ? "Submitting..." : "Submit Support Request"}
+            </button>
           </div>
-
-          {/* ACTION BAR */}
-          <div className="fixed bottom-0 left-0 right-0 bg-[var(--color-accentBg)] border-t border-[var(--color-muted)] px-4 py-4">
-              <div className="max-w-xl mx-auto">
-                  <button
-                      disabled={!canSubmit || loading}
-                      onClick={handleSubmit}
-                      className={`w-full py-3 rounded-lg font-semibold transition ${canSubmit
-                              ? "bg-[var(--color-primary)] text-white"
-                              : "bg-[var(--color-muted)] text-white"}`}
-                  >
-                      {loading ? "Submitting..." : "Submit Support Request"}
-                  </button>
-              </div>
-          </div>
+        </div>
       </div>
+
+      {/* SUCCESS MODAL */}
+      <AnimatePresence>
+        {success && (
+          <motion.div
+            className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl p-6 max-w-sm w-full text-center"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+            >
+              <FaCheckCircle className="text-green-500 text-4xl mx-auto mb-3" />
+              <h2 className="text-lg font-bold mb-1">
+                Request Submitted
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Our support team will contact you shortly.
+              </p>
+              <button
+                onClick={() => setSuccess(false)}
+                className="w-full py-2 rounded-xl bg-[var(--color-primary)] text-white"
+              >
+                Done
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

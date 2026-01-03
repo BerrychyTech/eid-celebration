@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMapMarkerAlt, FaTimes, FaLifeRing, FaTruck, FaCar } from 'react-icons/fa';
-import { MdDeliveryDining } from 'react-icons/md';
+import { FaMapMarkerAlt, FaTimes, FaLifeRing, FaTruck, } from 'react-icons/fa';
 import { useAuthStore } from '@/store/useAuthStore';
 import MapPreview from '@/components/dashboard/MapPreview';
 import Header from '@/components/Navbar';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+
 
 type TripStatus = 'upcoming' | 'past';
 
@@ -19,30 +21,46 @@ interface Trip {
   travelClass: string;
   status: TripStatus;
   driver?: string;
-  vehicle?: string;
+  vehicle?: string; // corresponds to vehicleType or vehicle
+  seats?: number;   // corresponds to seats (regular) or quantity (event fleet)
   destinationState: string;
   pickupState: string;
 }
 
+
+
 interface BookingDTO {
+  id: number;
+  status: string;
+
+  // regular booking
+  fromTown?: string;
+  toTown?: string;
+  travelDate?: string;
+  pickupTime?: string;
+  travelClass?: 'economy' | 'business';
+
+  // event fleet booking
+  pickupTown?: string;
+  destinationTown?: string;
+  eventDate?: string;
+  eventTime?: string;
+  vehicle?: string;
+
   destinationState: string;
   pickupState: string;
-  id: number;
-  fromTown: string;
-  toTown: string;
-  travelDate: string;
-  pickupTime: string;
-  travelClass: 'economy' | 'business';
-  status: string;
   driver?: string;
-  vehicle?: string;
 }
+
 
 export default function TripsTab() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TripStatus>('upcoming');
   const [activeTrackingBooking, setActiveTrackingBooking] = useState<Trip | null>(null);
-  const [trips, setTrips] = useState<Trip[]>([]);
+const [bookings, setBookings] = useState<{
+  regular: BookingDTO[];
+  eventFleet: BookingDTO[];
+}>({ regular: [], eventFleet: [] });
   const [loading, setLoading] = useState(true);
   
   const token = useAuthStore((state) => state.token);
@@ -53,70 +71,85 @@ export default function TripsTab() {
     { label: 'Past', value: 'past' },
   ];
 
-  const filteredTrips = trips.filter((t) => t.status === activeTab);
+const trips: Trip[] = [...bookings.regular, ...bookings.eventFleet].map(
+  mapBookingToTrip
+);
 
-  useEffect(() => {
-    async function fetchBookings() {
-      if (!token) return;
+const filteredTrips = trips.filter((t) => t.status === activeTab);
 
-      try {
-        // Replace with your actual API call
-        // const res = await api.get('/bookings', {
-        //   headers: {
-        //     Authorization: `Bearer ${token}`,
-        //   },
-        // });
-        // const bookings: BookingDTO[] = res.data.bookings;
-        // const mappedTrips = bookings.map(mapBookingToTrip);
-        // setTrips(mappedTrips);
 
-        // Mock data for demonstration
-        const mockBookings: BookingDTO[] = [
-          {
-            id: 1,
-            fromTown: 'Lagos',
-            toTown: 'Abuja',
-            travelDate: '2024-12-15',
-            pickupTime: '08:00 AM',
-            travelClass: 'economy',
-            status: 'confirmed',
-            driver: 'John Doe',
-            vehicle: 'Toyota Camry',
-            destinationState: 'FCT',
-            pickupState: 'Lagos'
-          },
-          {
-            id: 2,
-            fromTown: 'Port Harcourt',
-            toTown: 'Enugu',
-            travelDate: '2024-11-20',
-            pickupTime: '10:30 AM',
-            travelClass: 'business',
-            status: 'completed',
-            driver: 'Jane Smith',
-            vehicle: 'Mercedes Benz',
-            destinationState: 'Enugu',
-            pickupState: 'Rivers'
-          },
-        ];
+const fetchBookings = async () => {
+  if (!token) return;
+  setLoading(true);
 
-        const mappedTrips = mockBookings.map(mapBookingToTrip);
-        setTrips(mappedTrips);
-      } catch (err) {
-        console.error('Failed to fetch bookings', err);
-      } finally {
-        setLoading(false);
-      }
-    }
+  try {
+    const regularEndpoint =
+      activeTab === 'upcoming'
+        ? '/upcoming'
+        : '/past?page=1&limit=20';
 
-    fetchBookings();
-  }, [token]);
+    const eventFleetEndpoint =
+      activeTab === 'upcoming'
+        ? '/event-fleet/my/upcoming'
+        : '/event-fleet/my/past?page=1&limit=20';
+
+    const [regularRes, eventRes] = await Promise.all([
+      api.get(regularEndpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      api.get(eventFleetEndpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
+
+
+       console.log('Regular bookings response:', JSON.stringify(regularRes.data, null, 2));
+    console.log('Event fleet bookings response:', JSON.stringify(eventRes.data, null, 2));
+
+    const regularBookings =
+      activeTab === 'upcoming'
+        ? regularRes.data.upcoming
+        : regularRes.data.bookings;
+
+    const eventFleetBookings =
+      activeTab === 'upcoming'
+        ? eventRes.data.upcoming
+        : eventRes.data.past;
+
+    setBookings({
+      regular: regularBookings || [],
+      eventFleet: eventFleetBookings || [],
+    });
+  } catch (err) {
+    toast.error('❌ Failed to load trips.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchBookings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [activeTab, token]);
+
 
   const handleNavigate = () => {
     console.log('Navigating to deliveries...');
     router.push('/deliveries-history');
   };
 
+    const cancelBooking = async (id: string) => {
+      if (!token) return;
+      try {
+        await api.delete(`/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success('Booking cancelled successfully');
+        fetchBookings();
+      } catch (err) {
+        toast.error('Failed to cancel booking');
+      }
+    };
   // Animation refs
   const buttonRef = useRef<HTMLDivElement>(null);
 
@@ -170,78 +203,95 @@ export default function TripsTab() {
       </div>
 
       <div className="p-4 space-y-4">
-        {filteredTrips.map((trip) => (
-          <div
-            key={trip.id}
-            className="bg-cardBg dark:bg-dark-cardBg p-4 rounded-2xl shadow-md mt-4"
-          >
-            <div className="flex justify-between mb-2">
-              <h3 className="font-bold text-text dark:text-dark-text">
-                {trip.fromTown} → {trip.toTown}
-              </h3>
-              <span className="text-muted dark:text-dark-muted">
-                {trip.travelDate} {trip.pickupTime}
-              </span>
-            </div>
+{filteredTrips.map((trip, index) => (
+  <div
+    key={trip.id}
+    className="bg-cardBg dark:bg-dark-cardBg rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-800"
+  >
+    {/* Trip Header */}
+    <div className="flex justify-between items-start mb-3">
+      <div>
+        <h3 className="font-semibold text-lg text-text dark:text-dark-text">
+          {trip.fromTown} → {trip.toTown}
+        </h3>
+<div className="flex items-center gap-2 mt-1">
+  <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium">
+    {trip.travelClass}
+  </span>
+  {trip.seats && trip.seats > 0 && (
+    <span className="text-sm text-gray-500 dark:text-gray-400">
+      • {trip.seats} seat{trip.seats > 1 ? 's' : ''}
+    </span>
+  )}
+</div>
 
-            <p className="text-text dark:text-dark-text mb-1">Class: {trip.travelClass}</p>
-            {trip.vehicle && (
-              <p className="text-text dark:text-dark-text mb-1">Vehicle: {trip.vehicle}</p>
-            )}
-            {trip.driver && (
-              <p className="text-text dark:text-dark-text mb-2">Driver: {trip.driver}</p>
-            )}
+      </div>
+      <div className="text-right">
+        <p className="font-medium text-text dark:text-dark-text">{trip.travelDate}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{trip.pickupTime}</p>
+      </div>
+    </div>
 
-            {/* Actions */}
-            <div className="mt-2">
-              {trip.status === 'upcoming' && (
-                <>
-                  <div className="flex justify-between gap-2">
-                    <button
-                      onClick={() => setActiveTrackingBooking(trip)}
-                      className="bg-primary dark:bg-dark-primary text-white py-2 rounded-lg flex-1 flex items-center justify-center gap-2"
-                    >
-                      <FaMapMarkerAlt className="w-3.5 h-3.5" />
-                      <span className="font-medium text-sm">Track</span>
-                    </button>
+    {/* Trip Details */}
+    <div className="space-y-2 mb-4">
+      {trip.vehicle && (
+        <p className="text-sm text-text dark:text-dark-text">
+          <span className="text-gray-500 dark:text-gray-400">Vehicle:</span> {trip.vehicle}
+        </p>
+      )}
+      {trip.driver && (
+        <p className="text-sm text-text dark:text-dark-text">
+          <span className="text-gray-500 dark:text-gray-400">Driver:</span> {trip.driver}
+        </p>
+      )}
+    </div>
 
-                    <button className="border border-red-600 dark:border-red-500 py-2 rounded-lg flex-[2] flex items-center justify-center gap-2">
-                      <FaTimes className="w-3.5 h-3.5 text-red-600 dark:text-red-500" />
-                      <span className="font-medium text-sm text-red-600 dark:text-red-500">Cancel</span>
-                    </button>
-                  </div>
-
-                  <div className="flex justify-between gap-2 mt-2">
-                    <button className="bg-primary dark:bg-dark-primary text-white py-2 rounded-lg flex-[2]">
-                      <span className="text-center">View Details</span>
-                    </button>
-                    <button
-                      onClick={() =>
-                        router.push(`/support/${trip.id}?from=${trip.fromTown}&to=${trip.toTown}&date=${trip.travelDate}`)
-                      }
-                      className="flex-1 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center gap-2"
-                    >
-                      <FaLifeRing className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                      <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                        Get Help
-                      </span>
-                    </button>
-                  </div>
-                </>
-              )}
-              {trip.status === 'past' && (
-                <div className="flex justify-between gap-2">
-                  <button className="bg-primary dark:bg-dark-primary text-white py-2 rounded-lg flex-1">
-                    <span className="text-center">View Receipt</span>
-                  </button>
-                  <button className="bg-gray-600 dark:bg-gray-700 text-white py-2 rounded-lg flex-1">
-                    <span className="text-center">Rebook</span>
-                  </button>
-                </div>
-              )}
-            </div>
+    {/* Action Buttons */}
+    <div className="space-y-3">
+      {trip.status === 'upcoming' ? (
+        <>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTrackingBooking(trip)}
+              className="flex-1 py-2 px-4 rounded-lg bg-primary dark:bg-dark-primary text-white font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors duration-200"
+            >
+              <FaMapMarkerAlt /> Track
+            </button>
+            <button
+              onClick={() => cancelBooking(trip.id)}
+              className="flex-1 py-2 px-4 rounded-lg border border-red-500 text-red-600 dark:text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+            >
+              <FaTimes /> Cancel
+            </button>
           </div>
-        ))}
+          <div className="flex gap-2">
+            <button className="flex-1 py-2 px-4 rounded-lg bg-accentBg dark:bg-dark-accentBg text-text dark:text-dark-text font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
+              View Details
+            </button>
+            <button
+              onClick={() =>
+                router.push(`/support/${trip.id}?from=${trip.fromTown}&to=${trip.toTown}&date=${trip.travelDate}`)
+              }
+              className="flex-1 py-2 px-4 rounded-lg bg-link/10 text-link dark:text-dark-link font-medium flex items-center justify-center gap-2 hover:bg-link/20 transition-colors duration-200"
+            >
+              <FaLifeRing /> Get Help
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="flex gap-2">
+          <button className="flex-1 py-2 px-4 rounded-lg bg-primary dark:bg-dark-primary text-white font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors duration-200">
+            View Receipt
+          </button>
+          <button className="flex-1 py-2 px-4 rounded-lg bg-gray-600 dark:bg-gray-700 text-white font-medium flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors duration-200">
+            Rebook
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+))}
+
 
         {filteredTrips.length === 0 && (
           <div className="text-center mt-8">
@@ -261,7 +311,7 @@ export default function TripsTab() {
             className="bg-primary dark:bg-dark-primary w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-300"
             aria-label="View deliveries"
           >
-            <MdDeliveryDining className="w-7 h-7 text-white" />
+            <FaTruck className="w-7 h-7 text-white" />
           </button>
         </div>
       </div>
@@ -297,30 +347,39 @@ export default function TripsTab() {
   );
 }
 
-function mapBookingToTrip(booking: BookingDTO): Trip {
-  const tripDate = new Date(booking.travelDate);
+function mapBookingToTrip(booking: BookingDTO & Record<string, any>): Trip {
+  // Determine the correct date and time
+  const rawDate = booking.travelDate ?? booking.eventDate;
+  const rawTime = booking.pickupTime ?? booking.eventTime ?? '--:--';
+
+  if (!rawDate) {
+    throw new Error(`Missing date for booking ${booking.id}`);
+  }
+
+  const tripDate = new Date(rawDate);
   const today = new Date();
-  
-  // Adjust for timezone if needed
   tripDate.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
 
   const status: TripStatus =
-    booking.status === 'cancelled' || tripDate < today
-      ? 'past'
-      : 'upcoming';
+    booking.status === 'cancelled' || tripDate < today ? 'past' : 'upcoming';
 
   return {
     id: String(booking.id),
-    fromTown: booking.fromTown,
-    toTown: booking.toTown,
+    fromTown: booking.fromTown ?? booking.pickupTown ?? '—',
+    toTown: booking.toTown ?? booking.destinationTown ?? '—',
     travelDate: tripDate.toISOString().split('T')[0],
-    pickupTime: booking.pickupTime,
-    travelClass: booking.travelClass.charAt(0).toUpperCase() + booking.travelClass.slice(1),
+    pickupTime: rawTime,
+    travelClass: booking.travelClass
+      ? booking.travelClass.charAt(0).toUpperCase() + booking.travelClass.slice(1)
+      : 'Standard',
     status,
-    driver: booking.driver,
-    vehicle: booking.vehicle,
+    driver: booking.driver ?? '—', // driver field may not exist, fallback to —
+    vehicle: booking.vehicleType ?? booking.vehicle ?? '—', // event fleet uses vehicleType
+    seats: booking.seats ?? booking.quantity ?? 0, // regular has seats, event fleet has quantity
     destinationState: booking.destinationState,
-    pickupState: booking.pickupState,
+    pickupState: booking.pickupState ?? booking.currentState ?? '—', // regular uses currentState
   };
 }
+
+
