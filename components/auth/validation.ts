@@ -3,20 +3,22 @@ import { z } from "zod";
 export const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  phone: z.string().optional(),
-  fullName: z.string().optional(),
 });
 
-export const registerSchema = loginSchema.extend({
+export const registerSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
-
-  // validate first, then transform
+  gender: z.string().min(1, "Gender is required"),
+  state: z.string().min(1, "State is required"),
+  lga: z.string().min(1, "LGA is required"),
+  nin: z.string().regex(/^\d{11}$/, "NIN must be exactly 11 digits"),
   phone: z
     .string()
-    .min(1, "Phone is required")
-    .regex(/^0\d{10}$/, "Phone must start with 0 and be 11 digits (e.g. 08012345678)")
-    .transform((val) => val.replace(/\s/g, "")),
+    .regex(/^0\d{10}$/, "Phone must start with 0 and be 11 digits"),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+
 // Export a common TypeScript type for your form data
-export type AuthFormData = z.infer<typeof registerSchema> | z.infer<typeof loginSchema>;
+export type LoginFormData = z.infer<typeof loginSchema>;
+export type RegisterFormData = z.infer<typeof registerSchema>;

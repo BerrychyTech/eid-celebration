@@ -1,112 +1,152 @@
 "use client";
 
-import { AuthFormData } from "@/components/auth/validation";
 import { useState } from "react";
 
-type Props = {
+type Gender = "male" | "female" | "other";
+
+type CreateUserModalProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (data: AuthFormData) => void;
+  onCreate: (user: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    gender?: Gender;
+    state?: string;
+    lga?: string;
+    nin?: string;
+  }) => void;
 };
 
 export default function CreateNewUserModal({
   open,
   onClose,
   onCreate,
-}: Props) {
-  const [name, setName] = useState("");
+}: CreateUserModalProps) {
+  const [fullName, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [pwd, setPwd] = useState("");
-
-  function handleSubmit() {
-    if (!name || !email) return;
-
-    onCreate({
-      fullName: name,
-      email,
-      phone,
-      password: pwd,
-    });
-
-    // reset form
-    setName("");
-    setEmail("");
-    setPhone("");
-    setPwd("");
-    onClose();
-  }
+  const [gender, setGender] = useState<Gender | "">("");
+  const [state, setState] = useState("");
+  const [lga, setLga] = useState("");
+  const [nin, setNin] = useState("");
+  const [password, setPassword] = useState("");
 
   if (!open) return null;
 
+  function handleSubmit() {
+    if (!fullName || !email || !password) return;
+    onCreate({
+      fullName,
+      email,
+      password,
+      phone: phone || undefined,
+      gender: gender || undefined,
+      state: state || undefined,
+      lga: lga || undefined,
+      nin: nin || undefined,
+    });
+    // reset fields
+    setName("");
+    setEmail("");
+    setPhone("");
+    setPassword("");
+    setGender("");
+    setState("");
+    setLga("");
+    setNin("");
+    onClose();
+  }
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-white rounded-2xl w-[420px] p-6 space-y-4 shadow-lg">
-        <h2 className="text-lg font-semibold text-[#FD5C63]">
-          Create New User
-        </h2>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-[400px] max-h-[90vh] overflow-y-auto">
+        <h3 className="font-semibold text-lg text-[#FD5C63] mb-4">
+        </h3>
 
-        {/* NAME */}
-        <div>
-          <label className="text-sm text-neutral-600">Full Name</label>
+        <div className="space-y-3">
           <input
-            value={name}
+            type="text"
+            placeholder="Full Name"
+            value={fullName}
             onChange={(e) => setName(e.target.value)}
-            placeholder="John Doe"
-            className="mt-1 w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
           />
-        </div>
 
-        {/* EMAIL */}
-        <div>
-          <label className="text-sm text-neutral-600">Email</label>
           <input
             type="email"
+            placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="john@example.com"
-            className="mt-1 w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
           />
-        </div>
 
-        {/* PHONE */}
-        <div>
-          <label className="text-sm text-neutral-600">Phone</label>
           <input
+            type="tel"
+            placeholder="Phone (optional)"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="080xxxxxxxx"
-            className="mt-1 w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
           />
-        </div>
 
-                {/* PWD */}
-        <div>
-          <label className="text-sm text-neutral-600">Password</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value as Gender)}
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+          >
+            <option value="">Select Gender (optional)</option>
+            <option value="male">male</option>
+            <option value="female">female</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="State (optional)"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+          />
+
+          <input
+            type="text"
+            placeholder="LGA (optional)"
+            value={lga}
+            onChange={(e) => setLga(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+          />
+
+          <input
+            type="text"
+            placeholder="NIN (optional)"
+            value={nin}
+            onChange={(e) => setNin(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+          />
+
           <input
             type="password"
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-            placeholder="********"
-            className="mt-1 w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-[#FFEDE9] text-sm"
           />
+
         </div>
 
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border text-sm"
+            className="px-4 py-2 rounded-xl text-sm border"
           >
             Cancel
           </button>
-
           <button
             onClick={handleSubmit}
-            disabled={!name || !email}
-            className="px-4 py-2 rounded-xl bg-[#FD5C63] text-white text-sm disabled:opacity-50"
+            className="px-4 py-2 rounded-xl bg-[#FD5C63] text-white text-sm"
+            disabled={!fullName || !email}
           >
-            Create User
+            Create
           </button>
         </div>
       </div>

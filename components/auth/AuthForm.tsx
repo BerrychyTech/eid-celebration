@@ -5,31 +5,53 @@ import React from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthFormData, loginSchema, registerSchema } from "./validation";
+import { RegisterFormData, LoginFormData, loginSchema, registerSchema } from "./validation";
 import TextInput from "./fields/TextInput";
 import PasswordInput from "./fields/PasswordInput";
 import { formatPhoneForDisplay, cleanPhone } from "@/utils/formatPhone";
 import { Lock, UserPlus } from "lucide-react";
 
+type AuthFormData = LoginFormData | RegisterFormData;
+
+
 export interface AuthFormProps {
   mode: "login" | "register";
-  onSubmit: (data: AuthFormData) => Promise<void>;
+  onSubmit: (data: LoginFormData | RegisterFormData) => Promise<void>;
   isLoading?: boolean;
   error?: string;
 }
 
-export default function AuthForm({ mode, onSubmit, isLoading = false, error }: AuthFormProps) {
-  const schema = mode === "login" ? loginSchema : registerSchema;
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<AuthFormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { fullName: "", email: "", password: "", phone: "" },
-  });
+export default function AuthForm({ mode, onSubmit, isLoading = false, error }: AuthFormProps) {
+ const schema = mode === "login" ? loginSchema : registerSchema;
+
+const form = useForm<AuthFormData>({
+  resolver: zodResolver(schema),
+  defaultValues:
+    mode === "login"
+      ? {
+          email: "",
+          password: "",
+        }
+      : {
+          fullName: "",
+          gender: "",
+          state: "",
+          lga: "",
+          nin: "",
+          phone: "",
+          email: "",
+          password: "",
+        },
+});
+
+const {
+  register,
+  handleSubmit,
+  setValue,
+  formState: { errors, isSubmitting },
+} = form;
+
 
   // format phone on blur for nicer UX
   const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -38,14 +60,13 @@ export default function AuthForm({ mode, onSubmit, isLoading = false, error }: A
     setValue("phone", formatted, { shouldValidate: true, shouldDirty: true });
   };
 
-  const submit = handleSubmit(async (values) => {
-    // clean phone before sending
-    const payload = {
-      ...values,
-      phone: values.phone ? cleanPhone(values.phone) : "",
-    };
-    await onSubmit(payload);
-  });
+const submit = handleSubmit(async (values) => {
+  if ("phone" in values) {
+    values.phone = cleanPhone(values.phone);
+  }
+  await onSubmit(values);
+});
+
 
   return (
     <form onSubmit={submit} className="bg-white dark:bg-dark-card p-6 rounded-lg shadow space-y-5 max-w-md mx-auto my-20" noValidate>
@@ -66,27 +87,58 @@ export default function AuthForm({ mode, onSubmit, isLoading = false, error }: A
 
       {/* Using fieldset to disable everything when loading */}
       <fieldset disabled={isLoading} className="space-y-4">
-        {mode === "register" && (
+      {mode === "register" && (() => {
+        const registerErrors = errors as Partial<
+          Record<keyof RegisterFormData, { message?: string }>
+        >;
+
+        return (
           <>
             <TextInput
               id="fullName"
               label="Full Name"
-              placeholder="John Doe"
               {...register("fullName")}
-              error={errors.fullName?.message}
+              error={registerErrors.fullName?.message}
+            />
+
+            <TextInput
+              id="gender"
+              label="Gender"
+              {...register("gender")}
+              error={registerErrors.gender?.message}
+            />
+
+            <TextInput
+              id="nin"
+              label="NIN"
+              {...register("nin")}
+              error={registerErrors.nin?.message}
+            />
+
+            <TextInput
+              id="state"
+              label="State"
+              {...register("state")}
+              error={registerErrors.state?.message}
+            />
+
+            <TextInput
+              id="lga"
+              label="LGA"
+              {...register("lga")}
+              error={registerErrors.lga?.message}
             />
 
             <TextInput
               id="phone"
-              label="Phone Number"
-              placeholder="0801 234 5678"
-              inputMode="numeric"
+              label="Phone"
               {...register("phone")}
-              onBlur={handlePhoneBlur}
-              error={errors.phone?.message}
+              error={registerErrors.phone?.message}
             />
           </>
-        )}
+        );
+      })()}
+
 
         <TextInput
           id="email"
@@ -96,6 +148,7 @@ export default function AuthForm({ mode, onSubmit, isLoading = false, error }: A
           {...register("email")}
           error={errors.email?.message}
         />
+
 
         <PasswordInput
           id="password"
