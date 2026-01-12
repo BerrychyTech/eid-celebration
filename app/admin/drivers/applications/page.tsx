@@ -1,31 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { driverApplications } from "@/mock/driverApplications";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export default function DriverApplicationsPage() {
-  const [applications, setApplications] = useState(driverApplications);
+const [applications, setApplications] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
-  function handleApprove(id: string) {
-    setApplications(prev =>
-      prev.map(app =>
-        app.id === id ? { ...app, status: "approved" } : app
-      )
-    );
-    alert(`Application ${id} approved (mock)`);
+
+useEffect(() => {
+  async function fetchApplications() {
+    try {
+      const res = await api.get(
+        "/admin/drivers/applications"
+      );
+        console.log("RESPONSE BODY:", res.data);
+      // backend response shape:
+      // { success, count, data }
+
+      setApplications(res.data.data);
+    } catch (err) {
+      console.error("Failed to load applications", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleReject(id: string) {
-    setApplications(prev =>
-      prev.map(app =>
-        app.id === id ? { ...app, status: "rejected" } : app
-      )
-    );
-    alert(`Application ${id} rejected (mock)`);
-  }
+  fetchApplications();
+}, []);
+
+
+async function handleApprove(applicationId: string) {
+  await api.post(`/admin/drivers/applications/${applicationId}/approve`);
+
+setApplications(prev =>
+  prev.filter(app => app.applicationId !== applicationId)
+);
+}
+
+
+async function handleReject(applicationId: string) {
+  await api.post(`/admin/drivers/applications/${applicationId}/reject`);
+
+  setApplications(prev =>
+    prev.filter(app => app.applicationId !== applicationId)
+  );
+}
+
 
   // only show pending applications
-  const pendingApps = applications.filter(app => app.status === "pending");
+  const pendingApps = applications.filter(app => app.status === "new");
 
   return (
     <div className="p-6 space-y-6">
@@ -58,25 +82,35 @@ export default function DriverApplicationsPage() {
               </tr>
             ) : (
               pendingApps.map(app => (
-                <tr key={app.id} className="hover:bg-neutral-50">
+                <tr key={app.applicationId}>
                   <td className="px-4 py-3 font-medium text-neutral-800">
-                    {app.fullName}
+                    {app.fullname}
                   </td>
-                  <td className="px-4 py-3 text-neutral-600">{app.phone}</td>
-                  <td className="px-4 py-3 text-neutral-600">{app.city}</td>
-                  <td className="px-4 py-3 text-neutral-500">{app.submittedAt}</td>
+
+                  <td className="px-4 py-3 text-neutral-600">
+                    {app.phone}
+                  </td>
+
+                  <td className="px-4 py-3 text-neutral-600">
+                    {app.city}
+                  </td>
+
+                  <td className="px-4 py-3 text-neutral-500">
+                    {new Date(app.createdAt).toLocaleDateString()}
+                  </td>
+
                   <td className="px-4 py-3">
                     <StatusBadge status={app.status} />
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
-                      onClick={() => handleApprove(app.id)}
+                      onClick={() => handleApprove(app.applicationId)}
                       className="px-3 py-1 rounded-lg bg-green-600 text-white text-sm hover:opacity-90"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleReject(app.id)}
+                      onClick={() => handleReject(app.applicationId)}
                       className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm hover:opacity-90"
                     >
                       Reject
@@ -84,7 +118,7 @@ export default function DriverApplicationsPage() {
                     <button
                       className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm hover:opacity-90"
                     >
-                      <a href={`/admin/drivers/applications/${app.id}`}>
+                      <a href={`/admin/drivers/applications/${app.applicationId}`}>
                         view
                       </a>
                       

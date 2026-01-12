@@ -270,8 +270,10 @@ useEffect(() => {
             </button>
             <button
               onClick={() =>
-                router.push(`/support/${trip.id}?from=${trip.fromTown}&to=${trip.toTown}&date=${trip.travelDate}`)
-              }
+router.push(
+  `/mybookings/${trip.id}?type=ride&from=${encodeURIComponent(trip.fromTown)}&to=${encodeURIComponent(trip.toTown)}&date=${encodeURIComponent(trip.travelDate)}`
+
+)              }
               className="flex-1 py-2 px-4 rounded-lg bg-link/10 text-link dark:text-dark-link font-medium flex items-center justify-center gap-2 hover:bg-link/20 transition-colors duration-200"
             >
               <FaLifeRing /> Get Help

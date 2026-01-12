@@ -1,4 +1,5 @@
 // File: src/lib/auth.ts
+import { RegisterFormData } from "@/components/auth/validation";
 import api from "./api";
 
 export async function login(data: { email: string; password: string }) {
@@ -6,15 +7,11 @@ export async function login(data: { email: string; password: string }) {
   return res.data;
 }
 
-export async function register(data: {
-  email: string;
-  password: string;
-  fullName: string;
-  phone: string;
-}) {
+export async function register(data: RegisterFormData) {
   const res = await api.post("/auth/register", data);
   return res.data;
 }
+
 
 export async function requestPasswordReset(email: string) {
   const res = await api.post("/auth/forgot-password", { email });

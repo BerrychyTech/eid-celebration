@@ -5,6 +5,7 @@ import CreateNewUserModal from "@/components/admin/users/CreateNewUserModal";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/useAuthStore";
+import Link from "next/link";
 
 export interface NormalUser {
   id: string;
@@ -133,12 +134,11 @@ if (res.data.users) {  // Your API returns {success: true, users: [...], count: 
       try {
         // Try the status endpoint first
         await api.patch(
-          `/users/${userId}/status`, 
+          `/admin/suspend/${userId}`, 
           { status: newStatus },
           {
             headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
+              Authorization: `Bearer ${token}`
             }
           }
         );
@@ -273,6 +273,12 @@ if (res.data.users) {  // Your API returns {success: true, users: [...], count: 
                     >
                       {u.status === "active" ? "Suspend" : "Restore"}
                     </button>
+
+                    <Link href={`/admin/users/all/${u.id}`}>
+  <button className="px-3 py-1 rounded-lg text-white text-xs bg-red-500 hover:bg-red-600 mx-4">
+    View
+  </button>
+</Link>
                   </td>
                 </tr>
               ))

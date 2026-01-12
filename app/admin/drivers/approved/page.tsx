@@ -1,7 +1,45 @@
-import { approvedDrivers } from "@/mock/approvedDrivers";
+"use client";
+
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
+
+
+interface ApprovedDriver {
+  driverId: number;
+  fullName: string;
+  phone: string;
+  driverStatus: string;
+  vehicle: string;
+  appliedAt: string;
+}
 
 export default function ApprovedDriversPage() {
+  const [drivers, setDrivers] = useState<ApprovedDriver[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const token = useAuthStore.getState().token;
+  
+  useEffect(() => {
+  const fetchApprovedDrivers = async () => {
+    try {
+      const res = await api.get("/admin/drivers/approved", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },});
+      setDrivers(res.data.data);
+    } catch (error) {
+      console.error("Failed to fetch approved drivers", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchApprovedDrivers();
+  }, []);
+
   return (
     <div className="p-6 space-y-6">
 
@@ -26,7 +64,11 @@ export default function ApprovedDriversPage() {
 
       {/* TABLE */}
       <div className="bg-white border border-[#FFEDE9] rounded-2xl shadow overflow-x-auto">
-
+      {loading && (
+        <div className="p-6 text-center text-neutral-500">
+          Loading approved drivers…
+        </div>
+      )}
         <table className="w-full text-sm">
           <thead className="bg-[#FFF6F4] text-neutral-600">
             <tr>
@@ -40,8 +82,8 @@ export default function ApprovedDriversPage() {
           </thead>
 
           <tbody className="divide-y">
-            {approvedDrivers.map(d => (
-              <tr key={d.id} className="hover:bg-neutral-50">
+            {drivers.map(d => (
+              <tr key={d.driverId} className="hover:bg-neutral-50">
                 <td className="px-4 py-3 font-medium text-neutral-800">
                   {d.fullName}
                 </td>
@@ -51,11 +93,11 @@ export default function ApprovedDriversPage() {
                 </td>
 
                 <td className="px-4 py-3">
-                  <StatusBadge status={d.status} />
+                  <StatusBadge status={d.driverStatus} />
                 </td>
 
                 <td className="px-4 py-3">
-                  {d.vehicleAssigned ? (
+                  {d.vehicle ? (
                     <span className="text-green-600 font-medium">
                       Assigned
                     </span>
@@ -67,16 +109,16 @@ export default function ApprovedDriversPage() {
                 </td>
 
                 <td className="px-4 py-3 text-neutral-500">
-                  {d.joinedAt}
+                  {new Date(d.appliedAt).toLocaleDateString()}
                 </td>
 
                 <td className="px-4 py-3 text-right space-x-2">
                   <ActionLink
-                    href={`/admin/drivers/${d.id}`}
+                    href={`/admin/drivers/${d.driverId}`}
                     label="View"
                   />
                   <ActionLink
-                    href={`/admin/drivers/assign/${d.id}`}
+                    href={`/admin/drivers/assign/${d.driverId}`}
                     label="Assign Route"
                   />
                 </td>

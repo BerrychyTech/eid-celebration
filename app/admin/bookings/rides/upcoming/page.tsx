@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
 
 /* ---------------- TYPES ---------------- */
 
@@ -29,72 +31,62 @@ const TIME_BUCKETS = [
   { label: "Evening Wind-Down (4:00 PM – 7:59 PM)", from: 16, to: 19 },
 ];
 
-/* ---------------- FUTURE DAYS ---------------- */
-
-const FUTURE_DAYS = [
-  "2025-12-20",
-  "2025-12-21",
-  "2025-12-22",
-];
-
-const PASSENGERS = [
-  "Amina Bello",
-  "Sadiq Lawal",
-  "Maryam Yusuf",
-  "Ibrahim Musa",
-  "Daniel Okeke",
-  "Zainab Ahmed",
-];
-
-/* ---------------- MOCK DATA ---------------- */
-
-function generateUpcomingRides(): Ride[] {
-  let rides: Ride[] = [];
-  let counter = 1;
-
-  FUTURE_DAYS.forEach((day) => {
-    TIME_BUCKETS.forEach((bucket, i) => {
-      PASSENGERS.forEach((p) => {
-        const hour = bucket.from + 1;
-        const time =
-          hour === 12
-            ? "12:30 PM"
-            : hour > 12
-            ? `${hour - 12}:30 PM`
-            : `${hour}:30 AM`;
-
-        rides.push({
-          id: `UR-${counter++}`,
-          passenger: p,
-          pickupLocation: "Central District",
-          pickupTime: time,
-          date: day,
-          status: "scheduled",
-        });
-      });
-    });
-  });
-
-  return rides;
-}
-
-const upcomingRides = generateUpcomingRides();
-
 /* ---------------- PAGE ---------------- */
 
 export default function UpcomingRidesPage() {
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [viewOpen, setViewOpen] = useState(false);
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
 
   const [assignOpen, setAssignOpen] = useState(false);
   const [activeBucket, setActiveBucket] = useState<string | null>(null);
 
-  const [assignedDrivers, setAssignedDrivers] = useState<AssignedDriversMap>(
-    TIME_BUCKETS.reduce((acc, bucket) => {
-      acc[bucket.label] = null;
-      return acc;
-    }, {} as AssignedDriversMap)
-  );
+  const [assignedDrivers, setAssignedDrivers] =
+    useState<AssignedDriversMap>(
+      TIME_BUCKETS.reduce((acc, b) => {
+        acc[b.label] = null;
+        return acc;
+      }, {} as AssignedDriversMap)
+    );
+
+  /* ---------------- FETCH UPCOMING RIDES ---------------- */
+
+  useEffect(() => {
+    const fetchUpcoming = async () => {
+      try {
+        const token = useAuthStore.getState().token;
+
+        const res = await api.get("/admin/bookings", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log(res.data.data)
+        const today = getTodayDate();
+
+        const mapped: Ride[] = res.data.data
+          .filter((b: any) => normalizeDate(b.travelDate) > today)
+          .map((b: any) => ({
+            id: String(b.bookingId),
+            passenger: b.fullName,
+            pickupLocation: b.pickupLocation,
+            pickupTime: formatPickupTime(b.pickupTime),
+            date: normalizeDate(b.travelDate),
+            status: "scheduled",
+          }));
+
+        setRides(mapped);
+      } catch (err) {
+        console.error("Failed to fetch upcoming rides", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUpcoming();
+  }, []);
+
+  /* ---------------- DRIVER ASSIGN ---------------- */
 
   function openAssign(bucketLabel: string) {
     setActiveBucket(bucketLabel);
@@ -103,39 +95,39 @@ export default function UpcomingRidesPage() {
 
   function assignDriver(driver: string) {
     if (!activeBucket) return;
-
-    setAssignedDrivers((prev) => ({
-      ...prev,
-      [activeBucket]: driver,
-    }));
-
+    setAssignedDrivers((p) => ({ ...p, [activeBucket]: driver }));
     setAssignOpen(false);
   }
+
+  /* ---------------- GROUP UNIQUE DATES ---------------- */
+
+  const futureDates = Array.from(new Set(rides.map((r) => r.date))).sort();
 
   return (
     <div className="p-6 space-y-12">
       <h1 className="text-2xl font-bold text-[#FD5C63]">Upcoming Rides</h1>
 
-      {FUTURE_DAYS.map((day) => (
+      {loading && <p className="text-sm text-gray-500">Loading…</p>}
+
+      {futureDates.map((day) => (
         <div key={day} className="space-y-8">
           <h2 className="text-lg font-semibold text-gray-700">
             {formatDate(day)}
           </h2>
 
           {TIME_BUCKETS.map((bucket) => {
-            const rides = upcomingRides.filter((r) => {
+            const bucketRides = rides.filter((r) => {
               const hour = getHour(r.pickupTime);
               return r.date === day && hour >= bucket.from && hour <= bucket.to;
             });
 
-            if (!rides.length) return null;
+            if (!bucketRides.length) return null;
 
             const driver = assignedDrivers[bucket.label];
 
             return (
               <div key={bucket.label} className="space-y-3">
-                {/* Bucket Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-semibold">{bucket.label}</h3>
                     <StatusBadge />
@@ -149,7 +141,6 @@ export default function UpcomingRidesPage() {
                   </button>
                 </div>
 
-                {/* Rides Table */}
                 <div className="bg-white rounded-2xl border border-[#FFEDE9] shadow overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-[#FFF0ED]">
@@ -163,7 +154,7 @@ export default function UpcomingRidesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rides.map((r) => (
+                      {bucketRides.map((r) => (
                         <tr key={r.id} className="border-t border-[#FFEDE9]">
                           <td className="p-4 font-medium">{r.id}</td>
                           <td className="p-4">{r.passenger}</td>
@@ -208,7 +199,6 @@ export default function UpcomingRidesPage() {
   );
 }
 
-/* ---------------- MODALS ---------------- */
 
 function AssignDriverModal({
   open,
@@ -259,6 +249,7 @@ function AssignDriverModal({
   );
 }
 
+
 function ViewRideModal({
   open,
   ride,
@@ -299,20 +290,31 @@ function ViewRideModal({
     </div>
   );
 }
-
 /* ---------------- HELPERS ---------------- */
 
-function StatusBadge() {
-  return (
-    <span className="inline-block mt-1 px-3 py-1 rounded-full text-xs bg-orange-100 text-orange-700">
-      scheduled
-    </span>
-  );
+function normalizeDate(date: string) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
+
+function getTodayDate() {
+  const d = new Date();
+  return normalizeDate(d.toISOString());
+}
+
+function formatPickupTime(time: string) {
+  let [h, m] = time.split(":").map(Number);
+  const meridian = h >= 12 ? "PM" : "AM";
+  if (h > 12) h -= 12;
+  if (h === 0) h = 12;
+  return `${h}:${String(m).padStart(2, "0")} ${meridian}`;
 }
 
 function getHour(time: string) {
   const [raw, meridian] = time.split(" ");
-  let hour = parseInt(raw.split(":")[0], 10);
+  let hour = parseInt(raw, 10);
   if (meridian === "PM" && hour !== 12) hour += 12;
   if (meridian === "AM" && hour === 12) hour = 0;
   return hour;
@@ -320,6 +322,14 @@ function getHour(time: string) {
 
 function formatDate(date: string) {
   return new Date(date).toDateString();
+}
+
+function StatusBadge() {
+  return (
+    <span className="inline-block mt-1 px-3 py-1 rounded-full text-xs bg-orange-100 text-orange-700">
+      scheduled
+    </span>
+  );
 }
 
 function Detail({ label, value }: { label: string; value: string }) {

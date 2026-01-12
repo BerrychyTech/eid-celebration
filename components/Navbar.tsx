@@ -14,7 +14,6 @@ const menu = [
   { label: "My Bookings", href: "/mybookings" },
   { label: "Fleet Partner", href: "/fleet-partner" },
   { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
 ];
 
 export default function Header() {
@@ -38,9 +37,12 @@ export default function Header() {
     ? 
     [
     { label: "Dashboard", href: "/dashboard" },  
-    ...menu.filter((item) => item.label !== "Home"),
+    ...menu.filter((item) => item.label !== "Home" && item.label !== "About"),
     ]
-    : menu;
+    : [
+      ...menu,
+      { label: "Contact", href: "/contact" },
+    ];
 
   const renderAuth = () => {
     if (user) {
@@ -63,6 +65,11 @@ export default function Header() {
             </Link>
             <Link href="/support" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg">
               Support
+            </Link>
+            <Link
+              href="/contact" className="block px-4 py-2 hover:bg-accentBg dark:hover:bg-dark-accentBg"
+            >
+              Contact
             </Link>
             <button
               onClick={handleLogout}

@@ -14,12 +14,20 @@ import { Lock, UserPlus } from "lucide-react";
 type AuthFormData = LoginFormData | RegisterFormData;
 
 
-export interface AuthFormProps {
-  mode: "login" | "register";
-  onSubmit: (data: LoginFormData | RegisterFormData) => Promise<void>;
-  isLoading?: boolean;
-  error?: string;
-}
+type AuthFormProps =
+  | {
+      mode: "login";
+      onSubmit: (data: LoginFormData) => Promise<void>;
+      isLoading?: boolean;
+      error?: string;
+    }
+  | {
+      mode: "register";
+      onSubmit: (data: RegisterFormData) => Promise<void>;
+      isLoading?: boolean;
+      error?: string;
+    };
+
 
 
 export default function AuthForm({ mode, onSubmit, isLoading = false, error }: AuthFormProps) {
@@ -61,11 +69,18 @@ const {
   };
 
 const submit = handleSubmit(async (values) => {
-  if ("phone" in values) {
-    values.phone = cleanPhone(values.phone);
+  if (mode === "register") {
+    const registerValues = values as RegisterFormData;
+
+    await onSubmit({
+      ...registerValues,
+      phone: cleanPhone(registerValues.phone),
+    });
+  } else {
+    await onSubmit(values as LoginFormData);
   }
-  await onSubmit(values);
 });
+
 
 
   return (

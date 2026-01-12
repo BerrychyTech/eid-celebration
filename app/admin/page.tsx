@@ -29,7 +29,7 @@ const stats = [
 export default function AdminHome() {
   return (
     <div className="min-h-screen">
-      <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-4 text-primary">Admin Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
         {stats.map((stat) => (

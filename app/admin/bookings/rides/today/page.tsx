@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
+
 
 /* ---------------- TYPES ---------------- */
 
@@ -30,43 +33,7 @@ const TIME_BUCKETS = [
 
 /* ---------------- MOCK RIDES ---------------- */
 
-const todaysRides: Ride[] = [
-  {
-    id: "R001",
-    passenger: "Amina Bello",
-    pickupLocation: "Wuse Zone 4",
-    pickupTime: "6:15 AM",
-    status: "scheduled",
-  },
-  {
-    id: "R002",
-    passenger: "Sadiq Lawal",
-    pickupLocation: "Gwarimpa Estate",
-    pickupTime: "7:25 AM",
-    status: "scheduled",
-  },
-  {
-    id: "R003",
-    passenger: "Maryam Yusuf",
-    pickupLocation: "Maitama",
-    pickupTime: "9:10 AM",
-    status: "completed",
-  },
-  {
-    id: "R004",
-    passenger: "Ibrahim Musa",
-    pickupLocation: "Asokoro",
-    pickupTime: "12:40 PM",
-    status: "delayed",
-  },
-  {
-    id: "R005",
-    passenger: "Daniel Okeke",
-    pickupLocation: "Garki Area 11",
-    pickupTime: "4:20 PM",
-    status: "scheduled",
-  },
-];
+
 
 /* ---------------- PAGE ---------------- */
 
@@ -76,6 +43,59 @@ export default function TodaysRidesPage() {
 
   const [viewOpen, setViewOpen] = useState(false);
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
+
+  const [todaysRides, setTodaysRides] = useState<Ride[]>([]);
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+  const fetchTodaysRides = async () => {
+    try {
+      const token = useAuthStore.getState().token;
+
+      const res = await api.get("/admin/bookings", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(res.data)
+      // Map backend → UI Ride shape
+
+function normalizeDate(dateString: string) {
+  const d = new Date(dateString);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+
+      
+const today = getTodayDate();
+
+const rides: Ride[] = res.data.data
+  .filter((b: any) => normalizeDate(b.travelDate) === today)
+  .map((b: any) => ({
+    id: String(b.bookingId),
+    passenger: b.fullName,
+    pickupLocation: b.pickupLocation,
+    pickupTime: formatPickupTime(b.pickupTime),
+    status: mapStatus(b.status),
+  }));
+
+
+
+      setTodaysRides(rides);
+    } catch (error) {
+      console.error("Failed to fetch rides", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTodaysRides();
+}, []);
+
 
   const [assignedDrivers, setAssignedDrivers] =
     useState<AssignedDriversMap>({
@@ -107,6 +127,11 @@ export default function TodaysRidesPage() {
       <h1 className="text-2xl font-bold text-[#FD5C63]">
         Today’s Rides Dispatch Board
       </h1>
+      {loading && (
+        <div className="text-neutral-500 text-sm">
+          Loading today’s rides…
+        </div>
+      )}
 
       {TIME_BUCKETS.map((bucket) => {
         let rides = todaysRides.filter((r) => {
@@ -326,4 +351,30 @@ function Detail({ label, value }: { label: string; value: string }) {
       <span className="font-medium">{value}</span>
     </div>
   );
+}
+
+
+
+function formatPickupTime(time: string) {
+  if (!time) return "—";
+
+  let [hour, minute] = time.split(":").map(Number);
+  const meridian = hour >= 12 ? "PM" : "AM";
+
+  if (hour > 12) hour -= 12;
+  if (hour === 0) hour = 12;
+
+  return `${hour}:${minute.toString().padStart(2, "0")} ${meridian}`;
+}
+
+function mapStatus(status: string): RideStatus {
+  if (status === "completed") return "completed";
+  if (status === "delayed") return "delayed";
+  return "scheduled";
+}
+
+
+function getTodayDate() {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
 }

@@ -32,6 +32,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     formData.append("phone", (e.currentTarget.elements.namedItem("phone") as HTMLInputElement).value);
     formData.append("city", (e.currentTarget.elements.namedItem("city") as HTMLInputElement).value);
     formData.append("vehicle", (e.currentTarget.elements.namedItem("vehicle") as HTMLInputElement).value);
+    formData.append("gender", (e.currentTarget.elements.namedItem("gender") as HTMLInputElement).value);
+    formData.append("state", (e.currentTarget.elements.namedItem("state") as HTMLInputElement).value);
+    formData.append("lga", (e.currentTarget.elements.namedItem("lga") as HTMLInputElement).value);
+    formData.append("nin", (e.currentTarget.elements.namedItem("nin") as HTMLInputElement).value);
+
 
     if (licenseFile) formData.append("driverLicense", licenseFile);
     if (ninFile) formData.append("ninImage", ninFile);
@@ -61,6 +66,10 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         <TextInput id="phone" label="Phone Number" placeholder="0812 345 6789" />
         <TextInput id="city" label="City" placeholder="Your current city" />
         <TextInput id="vehicle" label="Vehicle Type you can drive" placeholder="Sharon, Golf, etc." />
+        <TextInput id="gender" label="Gender" placeholder="male / female / other" />
+        <TextInput id="state" label="State" placeholder="Lagos" />
+        <TextInput id="lga" label="Local Government Area" placeholder="Ikeja" />
+        <TextInput id="nin" label="NIN Number" placeholder="12345678901" />
 
         {/* Driver License Upload */}
         <div>
