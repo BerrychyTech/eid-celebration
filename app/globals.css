@@ -58,3 +58,91 @@ section.hero {
   background-color: var(--color-dark-accentBg);
   color: var(--color-dark-text);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@layer base {
+  /* Your existing theme colors remain the same */
+  :root {
+    --color-primary: #FD5C63;
+    --color-background: #FFEDE9;
+    --color-cardBg: #FAF5EF;
+    --color-accentBg: #FFFFFF;
+    --color-text: #2F2F2F;
+    --color-link: #3746A0;
+    --color-muted: #C4C4C4;
+    --color-formBg: #FFFFFF;
+    --color-inputText: #2F2F2F;
+
+    /* DARK THEME */
+    --color-dark-primary: #FD5C63;
+    --color-dark-background: #121212;
+    --color-dark-cardBg: #1C1C1C;
+    --color-dark-accentBg: #222222;
+    --color-dark-text: #EDEDED;
+    --color-dark-link: #818CF8;
+    --color-dark-muted: #5A5A5A;
+    --color-dark-formBg: #1C1C1C;
+    --color-dark-inputText: #E5E5E5;
+  }
+}
+
+/* Add custom animations for strawberry loader */
+@keyframes strawberry-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+}
+
+@keyframes strawberry-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes strawberry-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px var(--color-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-primary);
+  }
+}
+
+/* Apply animations to Tailwind */
+@layer utilities {
+  .animate-strawberry-ripple {
+    animation: strawberry-ripple 2s ease-in-out infinite;
+  }
+  
+  .animate-strawberry-bounce {
+    animation: strawberry-bounce 1s ease-in-out infinite;
+  }
+  
+  .animate-strawberry-glow {
+    animation: strawberry-glow 1.5s ease-in-out infinite;
+  }
+}

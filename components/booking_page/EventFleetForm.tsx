@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -10,6 +11,7 @@ const pickupState = "Jigawa";
 const jigawaTowns = ["Gumel", "Dutse", "Hadejia"];
 
 export default function EventFleetForm() {
+  const router = useRouter();
   const [form, setForm] = React.useState({
     pickupState,
     pickupTown: "",
@@ -27,7 +29,6 @@ export default function EventFleetForm() {
   });
 
   const [loading, setLoading] = React.useState(false);
-  const [showWaitingPage, setShowWaitingPage] = React.useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -38,7 +39,7 @@ export default function EventFleetForm() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-    const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().token;
 
   const handleFleetRequest = async () => {
     const required = [
@@ -67,32 +68,37 @@ export default function EventFleetForm() {
     try {
       setLoading(true);
 
-      await api.post(
-        "/event-fleet",
-        {
-          pickupState,
-          pickupTown: form.pickupTown,
-          destinationState: form.destinationState,
-          destinationTown: form.destinationTown,
-          eventDate: form.eventDate,
-          eventTime: form.eventTime,
-          tripFlow: form.tripFlow,
-          stayDuration: form.stayDuration || null,
-          eventType: form.eventType,
-          vehicleType: form.vehicleType,
-          quantity: Number(form.quantity),
-          journeyDescription: form.journeyDescription || null,
-          notes: form.notes || null,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      const res = await api.post(
+          "/event-fleet",
+          {
+            pickupState,
+            pickupTown: form.pickupTown,
+            destinationState: form.destinationState,
+            destinationTown: form.destinationTown,
+            eventDate: form.eventDate,
+            eventTime: form.eventTime,
+            tripFlow: form.tripFlow,
+            stayDuration: form.stayDuration || null,
+            eventType: form.eventType,
+            vehicleType: form.vehicleType,
+            quantity: Number(form.quantity),
+            journeyDescription: form.journeyDescription || null,
+            notes: form.notes || null,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+      const requestId = res.data.requestId;
+      console.log("Fetching price for requestId:", requestId);
 
       toast.success("Fleet request submitted successfully 🚐");
-      setShowWaitingPage(true);
+      
+      // Redirect to /unpaid page instead of showing waiting page
+      router.push(`/book/unpaid`);
     } catch (error: any) {
       console.error(error);
       toast.error(
@@ -102,21 +108,6 @@ export default function EventFleetForm() {
       setLoading(false);
     }
   };
-
-
-  if (showWaitingPage) {
-    return (
-      <div className="p-6 bg-cardBg dark:bg-dark-cardBg rounded-lg shadow text-center font-poppins">
-        <h2 className="text-xl font-semibold mb-4">Please wait...</h2>
-        <p className="text-text dark:text-dark-text mb-2">
-          Your booking price is being scheduled on your account.
-        </p>
-        <p className="text-text dark:text-dark-text">
-          You can complete your booking process by making the required payment once scheduled.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <form className="bg-cardBg dark:bg-dark-cardBg p-6 rounded-lg shadow space-y-6 font-poppins">
