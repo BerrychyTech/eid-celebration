@@ -22,7 +22,7 @@ export default function EidCelebrationPage() {
   const jokesList = [
     "Why don't we ever play hide and seek on Eid? 🤷 ... Because good deeds always find you!",
     "Teacher: 'Why are you late?' Student: 'Eid Mubarak!' Teacher: '... Okay, fine. Sit.'",
-    "What do you call a confused shehri? 🐪 ... Lost in the 'desert' of thought!",
+    "What do you call a confused shehri? 🐪 .... Lost in the 'desert' of thought!",
     "Why did the samosa break up with the jalebi? 💔 ... It found someone 'sweeter'!"
   ];
 
