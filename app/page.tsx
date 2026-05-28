@@ -232,7 +232,7 @@ export default function EidCelebrationPage() {
                     May this blessed occasion bring you endless joy, peace, and prosperity.
                   </p>
                   <p className="text-sm italic text-amber-800">
-                    "May Allah accept your good deeds, forgive your transgressions, and ease the suffering of all people around the world."
+                    "May Allah accept your good deeds, forgive your transgressions, and ease the sufferings of all muslims around the world."
                   </p>
                   <div className="pt-2 text-emerald-700 font-semibold">
                     Wishing you and your family a very happy and blessed Eid! 🎊
