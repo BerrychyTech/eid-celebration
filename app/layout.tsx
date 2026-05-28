@@ -4,8 +4,8 @@ import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
-  title: "BerryGo — Move Better, Live Better",
-  description: "Transportation made smart and seamless.",
+  title: "One click = personalized Eid message + a robot that randomly guesses your resumption week. Spoiler: It's wrong 99% of the time. 😂",
+  description: "One click = personalized Eid message + a robot that randomly guesses your resumption week. Spoiler: It's wrong 99% of the time. 😂",
   icons: {
     icon: '/favicon.ico', 
   },
