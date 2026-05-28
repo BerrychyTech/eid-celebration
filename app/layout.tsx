@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
-  title: "One click = personalized Eid message + a robot that randomly guesses your resumption week. Spoiler: It's wrong 99% of the time. 😂",
+  title: "What's in here? 🤔",
   description: "One click = personalized Eid message + a robot that randomly guesses your resumption week. Spoiler: It's wrong 99% of the time. 😂",
   icons: {
     icon: '/favicon.ico', 
