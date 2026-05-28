@@ -8,7 +8,7 @@ type User = {
   fullName?: string;
   email: string;
   phoneNumber : string;
-  role: "user" | "admin" | "super_admin";
+  role: "user" | "driver" | "admin" | "super_admin";
   [key: string]: any;
 };
 

@@ -1,7 +1,7 @@
 "use server";
 
 import api from "@/lib/api";
-
+import { redirect } from "next/navigation";
 export async function sendFleetForm(formData: FormData): Promise<void> {
   try {
     const payload = {
@@ -15,7 +15,8 @@ export async function sendFleetForm(formData: FormData): Promise<void> {
     };
 
     await api.post("/fleet-applications", payload);
-  } catch (error: any) {
+redirect("/");
+    } catch (error: any) {
     console.error("Fleet form error:", error?.response?.data || error);
     throw new Error(
       error?.response?.data?.message || "Failed to submit application"
